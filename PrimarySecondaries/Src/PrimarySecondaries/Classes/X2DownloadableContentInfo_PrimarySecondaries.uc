@@ -249,9 +249,7 @@ static function PatchAbilityTemplates()
 	local array<X2AbilityTemplate>						AbilityTemplates;
 	local array<name>									TemplateNames;
 	local name											TemplateName;
-	local X2AbilityCost_QuickdrawActionPointsPatched	ActionPointCost;
-	local X2AbilityCost_ActionPoints					OldActionPointCost;
-	local int											OldActionPoint;
+	local X2AbilityCost_ActionPoints					ActionPointCost;
 	
 	TemplateManager = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
 
@@ -290,16 +288,12 @@ static function PatchAbilityTemplates()
 		Template = TemplateManager.FindAbilityTemplate(TemplateName);
 		if (Template != none)
 		{
-			OldActionPointCost = X2AbilityCost_ActionPoints(Template.AbilityCosts[0]);
-			if (OldActionPointCost != none)
+			ActionPointCost = X2AbilityCost_ActionPoints(Template.AbilityCosts[0]);
+			if (ActionPointCost != none && ActionPointCost.DoNotConsumeAllSoldierAbilities.Find('QuickDrawPrimary') == INDEX_NONE)
 			{
-				`LOG("Patching Template" @ TemplateName @ "with X2AbilityCost_QuickdrawActionPointsPatched",, 'PrimarySecondaries');
-				OldActionPoint = OldActionPointCost.iNumPoints;
-	
-				ActionPointCost = new class'X2AbilityCost_QuickdrawActionPointsPatched';
-				ActionPointCost.iNumPoints = OldActionPoint;
-				Template.AbilityCosts.length = 0;
-				Template.AbilityCosts.AddItem(ActionPointCost);
+				ActionPointCost.DoNotConsumeAllSoldierAbilities.AddItem('QuickDrawPrimary');
+				ActionPointCost.DoNotConsumeAllSoldierAbilities.AddItem('Quickdraw');
+				`LOG("Patching Template" @ TemplateName @ "adding QuickDrawPrimary and Quickdraw to DoNotConsumeAllSoldierAbilities",, 'PrimarySecondaries');
 			}
 		}
 	}
@@ -436,41 +430,19 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	if (InStr(string(WeaponTemplate.DataName), "_Primary") != INDEX_NONE)
 	{
 		HQAnimSet = AnimSet(`CONTENT.RequestGameArchetype("HQ_ANIM.Anims.AS_Armory_Unarmed"));
-
 		// Force Personality_ByTheBook
 		UnitState.kAppearance.iAttitude = 0;
 		UnitState.UpdatePersonalityTemplate();
 		AddAnimSet(Pawn, HQAnimSet);
 
-		`LOG(GetFuncName() @ XGWeaponPatched(XComWeapon(Pawn.Weapon).m_kGameWeapon),, 'PrimarySecondaries');
-		
-		// Super hacky but assinging the animsets in XGWeaponPatched doesnt work for unknown reasons
-		//if (XGWeaponPatched(XComWeapon(Pawn.Weapon).m_kGameWeapon) != none)
-		//{
-		//	if (IsPrimaryPistolWeaponTemplate(WeaponTemplate))
-		//	{
-		//		if (WeaponTemplate.WeaponCat == 'pistol')
-		//		{
-		//			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_Pistol")));
-		//		}
-		//		else if(WeaponTemplate.WeaponCat == 'sidearm')
-		//		{
-		//			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_TemplarAutoPistol")));
-		//		}
-		//	}
-		//}
-		//else
-		//{
-		//	Pawn.DefaultUnitPawnAnimsets.RemoveItem(AnimSet(`CONTENT.RequestGameArchetype("Soldier_ANIM.Anims.AS_Pistol")));
-		//	Pawn.DefaultUnitPawnAnimsets.RemoveItem(AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_TemplarAutoPistol")));
-		//}
+		//`LOG(GetFuncName(),, 'PrimarySecondaries');
 
 		Pawn.Mesh.UpdateAnimations();
 
-		foreach Pawn.Mesh.AnimSets(HQAnimSet)
-		{
-			`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ HQAnimSet,, 'PrimarySecondaries');
-		}
+		//foreach Pawn.Mesh.AnimSets(HQAnimSet)
+		//{
+		//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ HQAnimSet,, 'PrimarySecondaries');
+		//}
 	}
 }
 

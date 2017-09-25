@@ -8,98 +8,20 @@ static function array<X2DataTemplate> CreateTemplates()
 {
 	local array<X2DataTemplate> Templates;
 
-	Templates.AddItem(AddBothBarrels());
+	Templates.AddItem(QuickDrawPrimary());
 	Templates.AddItem(PrimaryPistolsBonus('PrimaryPistolsBonus', default.PISTOL_MOVEMENT_BONUS, default.PISTOL_DETECTIONRADIUS_MODIFER));
 	Templates.AddItem(PrimaryAnimSet());
 
 	return Templates;
 }
 
-static function X2AbilityTemplate AddBothBarrels()
+static function X2AbilityTemplate QuickDrawPrimary()
 {
-	local X2AbilityTemplate								Template;	
-	local X2AbilityCost_Ammo							AmmoCost;
-	local X2AbilityCost_QuickdrawActionPointsPatched	ActionPointCost;
-	local X2Effect_ApplyWeaponDamage					WeaponDamageEffect;
-	local array<name>									SkipExclusions;
-	local X2Effect_Knockback							KnockbackEffect;
-	local X2AbilityTarget_Single						SingleTarget;
+	local X2AbilityTemplate			Template;
 
-	// Macro to do localisation and stuffs
-	`CREATE_X2ABILITY_TEMPLATE(Template, 'PrimaryBothBarrels');
+	Template = PurePassive('QuickDrawPrimary', "img:///UILibrary_PerkIcons.UIPerk_quickdraw");
 
-	// Icon Properties
-	//Template.bDontDisplayInAbilitySummary = true;
-	Template.IconImage = "img:///PrimarySawedoffShotgun.UI.UIPerk_AbilityBothBarrels";
-	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.STANDARD_PISTOL_SHOT_PRIORITY + 1;
-	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_AlwaysShow;
-	Template.DisplayTargetHitChance = true;
-	Template.AbilitySourceName = 'eAbilitySource_Perk';                                       // color of the icon
-	Template.bHideOnClassUnlock = true;
-	Template.bDisplayInUITooltip = false;
-	Template.bDisplayInUITacticalText = false;
-
-	// Activated by a button press; additionally, tells the AI this is an activatable
-	Template.AbilityTriggers.AddItem(default.PlayerInputTrigger);
-
-	// *** VALIDITY CHECKS *** //
-	SkipExclusions.AddItem(class'X2AbilityTemplateManager'.default.DisorientedName);
-	Template.AddShooterEffectExclusions(SkipExclusions);
-
-	// Targeting Details
-	// Can only shoot visible enemies
-	Template.AbilityTargetConditions.AddItem(default.GameplayVisibilityCondition);
-	// Can't target dead; Can't target friendlies
-	Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
-	// Can't shoot while dead
-	Template.AbilityShooterConditions.AddItem(default.LivingShooterProperty);
-	// Only at single targets that are in range.
-	SingleTarget = new class'X2AbilityTarget_Single';
-	SingleTarget.OnlyIncludeTargetsInsideWeaponRange = true;
-	SingleTarget.bAllowDestructibleObjects=true;
-	SingleTarget.bShowAOE = true;
-	Template.AbilityTargetStyle = SingleTarget;
-
-	// Action Point
-	ActionPointCost = new class'X2AbilityCost_QuickdrawActionPointsPatched';
-	ActionPointCost.iNumPoints = 1;
-	ActionPointCost.bConsumeAllPoints = true;
-	Template.AbilityCosts.AddItem(ActionPointCost);	
-
-	// Ammo
-	AmmoCost = new class'X2AbilityCost_Ammo';	
-	AmmoCost.iAmmo = 2;
-	Template.AbilityCosts.AddItem(AmmoCost);
-	Template.bAllowAmmoEffects = true; // 	
-
-	// Weapon Upgrade Compatibility
-	Template.bAllowFreeFireWeaponUpgrade = true;                                            // Flag that permits action to become 'free action' via 'Hair Trigger' or similar upgrade / effects
-
-	// Damage Effect
-	WeaponDamageEffect = new class'X2Effect_DoubleDamage';
-	Template.AddTargetEffect(WeaponDamageEffect);
-
-	// Hit Calculation (Different weapons now have different calculations for range)
-	Template.AbilityToHitCalc = default.SimpleStandardAim;
-	Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;
-		
-	// Targeting Method
-	Template.TargetingMethod = class'X2TargetingMethod_OverTheShoulder';
-	Template.bUsesFiringCamera = true;
-	Template.CinescriptCameraType = "StandardGunFiring";
-
-	// MAKE IT LIVE!
-	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	
-	Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;
-
-	KnockbackEffect = new class'X2Effect_Knockback';
-	KnockbackEffect.KnockbackDistance = 5;
-	Template.AddTargetEffect(KnockbackEffect);
-
-	Template.bUseAmmoAsChargesForHUD = false;
-
-	return Template;	
+	return Template;
 }
 
 static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bonus, float DetectionModifier)

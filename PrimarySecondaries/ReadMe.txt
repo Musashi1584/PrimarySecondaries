@@ -6,7 +6,7 @@ Please don't use this together with my "Primary Pistols" mod. The mods collide w
 
 This mod generates primary variants of all pistols and melee weapons in the game.
 
-They are unlocked together with their secondary counterpart (except the sawed-off shotguns).
+They are unlocked together with their secondary counterpart.
 
 It supports all DLC and XPack weapons and every melee weapon or pistol of any mod,
 since the the primary weapons are generated at game initializtion from whatever you have installed.
@@ -25,7 +25,6 @@ This is not fully tested and could be buggy for abilities like supression e.g. F
 Also you can't use ranged abilities with swords of course.
 
 Credits to:
-Pavonis Interactive and Capnpubs for the Sawed-Off Shotguns.
 Krakah for the pistol attachments.
 
 Donations
