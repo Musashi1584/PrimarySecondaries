@@ -2,13 +2,14 @@ class XGWeaponMeleePatched extends XGWeapon;
 
 simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none)
 {
-	local X2WeaponTemplate WeaponTemplate, PrimaryWeaponTemplate;
+	local X2WeaponTemplate WeaponTemplate, PrimaryWeaponTemplate, SecondaryWeaponTemplate;
 	local XComGameState_Unit UnitState;
 
 	super.CreateEntity(ItemState);
 
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
 	PrimaryWeaponTemplate = X2WeaponTemplate(UnitState.GetPrimaryWeapon().GetMyTemplate());
+	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetSecondaryWeapon().GetMyTemplate());
 	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
 	
 	// Dual Melee
@@ -31,6 +32,14 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
 			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("DualSword.Anims.AS_Sword")));
 			`LOG(Class.Name @ "Adding DualSword.Anims.AS_Sword",, 'PrimarySecondaries');
+		}
+	}
+	// Shields
+	else if (SecondaryWeaponTemplate.WeaponCat == 'shield')
+	{
+		if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimarySwordWeaponTemplate(WeaponTemplate))
+		{
+			XComWeapon(m_kEntity).DefaultSocket = 'R_Hand';
 		}
 	}
 	// Primary Melee
