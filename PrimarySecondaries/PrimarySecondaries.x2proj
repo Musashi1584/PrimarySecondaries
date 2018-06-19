@@ -22,6 +22,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Folder Include="Src\PrimarySecondaries\Classes\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config\XComArmory_Overhaul_Defaults.ini">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Config\XComClassData.ini">
       <SubType>Content</SubType>
     </Content>

@@ -10,7 +10,7 @@ static function array<X2DataTemplate> CreateTemplates()
 
 	Templates.AddItem(QuickDrawPrimary());
 	Templates.AddItem(PrimaryPistolsBonus('PrimaryPistolsBonus', default.PISTOL_MOVEMENT_BONUS, default.PISTOL_DETECTIONRADIUS_MODIFER));
-	Templates.AddItem(PrimaryAnimSet());
+	//Templates.AddItem(PrimaryAnimSet());
 
 	return Templates;
 }

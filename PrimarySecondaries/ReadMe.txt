@@ -27,5 +27,8 @@ Also you can't use ranged abilities with swords of course.
 Credits to:
 Krakah for the pistol attachments.
 
+Mod troubleshooting
+https://www.reddit.com/r/xcom2mods/wiki/mod_troubleshooting
+
 Donations
 [url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5PPVEBYPKGKBN]donate link[/url]
