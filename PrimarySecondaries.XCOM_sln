@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # XCOM ModBuddy Solution File, Format Version 11.00
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{5DAE07AF-E217-45C1-8DE7-FF99D6011E8A}") = "PrimarySecondaries", "PrimarySecondaries\PrimarySecondaries.x2proj", "{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}"
+Project("{5DAE07AF-E217-45C1-8DE7-FF99D6011E8A}") = "PrimarySecondaries", "PrimarySecondaries\PrimarySecondaries.x2proj", "{DAD289B0-6474-47A4-992C-89D0C3CE2373}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Default|XCOM 2 = Default|XCOM 2
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Debug|Debug.ActiveCfg = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Debug|Debug.Build.0 = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Debug|XCOM 2.ActiveCfg = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Debug|XCOM 2.Build.0 = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Default|Debug.ActiveCfg = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Default|Debug.Build.0 = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Default|XCOM 2.ActiveCfg = Default|XCOM 2
-		{6A867ED5-2D95-4EC4-A21E-57DC1C58B175}.Default|XCOM 2.Build.0 = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Debug|Debug.ActiveCfg = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Debug|Debug.Build.0 = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Debug|XCOM 2.ActiveCfg = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Debug|XCOM 2.Build.0 = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Default|Debug.ActiveCfg = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Default|Debug.Build.0 = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Default|XCOM 2.ActiveCfg = Default|XCOM 2
+		{DAD289B0-6474-47A4-992C-89D0C3CE2373}.Default|XCOM 2.Build.0 = Default|XCOM 2
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

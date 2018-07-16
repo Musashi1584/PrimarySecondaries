@@ -23,7 +23,7 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 		}
 	}
 	// Dual Melee
-	else if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasDualSwordsEquipped(UnitState))
+	else if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasDualMeleeEquipped(UnitState))
 	{
 		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
 		{

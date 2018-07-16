@@ -63,6 +63,11 @@ static function bool IsModInstalled(name X2DCLName)
 	return false;
 }
 
+static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
+{
+	class'ShellMapMatinee'.static.PatchAllLoadedMatinees(UnitPawn, UnitState, SearchState);
+}
+
 /// <summary>
 /// This method is run if the player loads a saved game that was created prior to this DLC / Mod being installed, and allows the 
 /// DLC / Mod to perform custom processing in response. This will only be called once the first time a player loads a save that was
@@ -104,17 +109,19 @@ static function UpdateStorage()
 	local XComGameState_HeadquartersXCom XComHQ;
 	local X2ItemTemplateManager ItemTemplateMgr;
 	local X2DataTemplate ItemTemplate;
+	local array<X2ItemTemplate> ItemTemplates;
 	local name TemplateName;
 	local XComGameState_Item NewItemState;
 	local array<name> AllTemplateNames;
+	local int i;
 
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
 	XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
 	XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
-	//NewGameState.ModifyStateObject(XComHQ);
-	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 
+
+	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 	ItemTemplateMgr.GetTemplateNames(AllTemplateNames);
 
 	foreach AllTemplateNames(TemplateName)
@@ -135,6 +142,22 @@ static function UpdateStorage()
 			}
 		}
 	}
+
+	ItemTemplates.AddItem(ItemTemplateMgr.FindItemTemplate('EmptySecondary'));
+	for (i = 0; i < ItemTemplates.Length; ++i)
+	{
+		if(ItemTemplates[i] != none)
+		{
+			if (!XComHQ.HasItem(ItemTemplates[i]))
+			{
+				`Log(ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory",, 'PrimarySecondaries');
+				NewItemState = ItemTemplates[i].CreateInstanceFromTemplate(NewGameState);
+				NewGameState.AddStateObject(NewItemState);
+				XComHQ.AddItemToHQInventory(NewItemState);
+			}
+		}
+	}
+
 	History.AddGameStateToHistory(NewGameState);
 	History.CleanupPendingGameState(NewGameState);
 }
@@ -258,8 +281,8 @@ static function AddEqippDelegates()
 				//OnOldEquippedFn = WeaponTemplate.OnEquippedFn;
 				//OnOldUnequippedFn = WeaponTemplate.OnUnequippedFn;
 
-				WeaponTemplate.OnEquippedFn = PistolEquipped;
-				WeaponTemplate.OnUnequippedFn = PistolUnEquipped;
+				//WeaponTemplate.OnEquippedFn = PistolEquipped;
+				//WeaponTemplate.OnUnequippedFn = PistolUnEquipped;
 			}
 		}
 	}
@@ -484,23 +507,12 @@ static function AddPrimarySecondaries()
 
 static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameState_Unit UnitState, XComUnitPawn Pawn)
 {
-	local XComGameState_Item PrimaryWeapon;
-	local X2WeaponTemplate PrimaryWeaponTemplate;
 	local AnimSet IterateAnimSet;
 	local bool bLog;
 
 	bLog = true;
 	
-	PrimaryWeapon = UnitState.GetPrimaryWeapon();
-	PrimaryWeaponTemplate = X2WeaponTemplate(PrimaryWeapon.GetMyTemplate());
-
-	//`LOG(GetFuncName() @ UnitState.GetFullName() @ PrimaryWeaponTemplate.DataName, bLog, 'PrimarySecondaries');
-
-	if (InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE &&
-		!HasDualPistolEquipped(UnitState) &&
-		!HasDualSwordsEquipped(UnitState) &&
-		!HasShieldEquipped(UnitState)
-	)
+	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
 		// Force Personality_ByTheBook
 		UnitState.kAppearance.iAttitude = 0;
@@ -510,11 +522,11 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 		
 		Pawn.Mesh.UpdateAnimations();
 
-		//foreach Pawn.Mesh.AnimSets(IterateAnimSet)
-		//{
-		//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ IterateAnimSet, bLog, 'PrimarySecondaries');
-		//}
-		//`LOG(GetFuncName() @ UnitState.GetFullName() @ "------------------", bLog, 'PrimarySecondaries');
+		foreach Pawn.Mesh.AnimSets(IterateAnimSet)
+		{
+			`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ IterateAnimSet, bLog, 'PrimarySecondaries');
+		}
+		`LOG(GetFuncName() @ UnitState.GetFullName() @ "------------------", bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -534,13 +546,54 @@ static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int
 	}
 }
 
-static function bool HasShieldEquipped(XComGameState_Unit UnitState)
+static function bool HasPrimaryMeleeOrPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
+{
+	return HasPrimaryMeleeEquipped(UnitState, CheckGameState) || HasPrimaryPistolEquipped(UnitState, CheckGameState);
+}
+
+static function bool HasPrimaryMeleeEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
+{
+	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
+		!HasDualPistolEquipped(UnitState, CheckGameState) &&
+		!HasDualMeleeEquipped(UnitState, CheckGameState) &&
+		!HasShieldEquipped(UnitState, CheckGameState);
+}
+
+static function bool HasPrimaryPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
+{
+	return IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
+		!HasDualPistolEquipped(UnitState, CheckGameState) &&
+		!HasDualMeleeEquipped(UnitState, CheckGameState) &&
+		!HasShieldEquipped(UnitState, CheckGameState);
+}
+
+static function bool HasShieldEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
 	local X2WeaponTemplate SecondaryWeaponTemplate;
-	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetSecondaryWeapon().GetMyTemplate());
+	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate());
 	return SecondaryWeaponTemplate.WeaponCat == 'shield';
 }
 
+static function bool HasDualPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
+{
+	return IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
+		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate()));
+}
+
+static function bool CheckDualPistolGetsEquipped(XComGameState_Unit UnitState, XComGameState_Item ItemState, optional XComGameState CheckGameState)
+{
+	return (IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
+		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())))
+		||
+		(IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())) &&
+		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate())));
+}
+
+static function bool HasDualMeleeEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
+{
+	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
+		IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate()));
+}
 
 static function bool IsPistolWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
@@ -582,105 +635,4 @@ static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTempl
 		WeaponTemplate.WeaponCat != 'wristblade' &&
 		WeaponTemplate.WeaponCat != 'shield' &&
 		WeaponTemplate.WeaponCat != 'gauntlet';
-}
-
-static function bool HasDualPistolEquipped(XComGameState_Unit UnitState)
-{
-	return IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate())) &&
-		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate()));
-}
-
-static function bool CheckDualPistolGetsEquipped(XComGameState_Unit UnitState, XComGameState_Item ItemState)
-{
-	return (IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate())) &&
-		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())))
-		||
-		(IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())) &&
-		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate())));
-}
-
-static function bool HasDualSwordsEquipped(XComGameState_Unit UnitState)
-{
-	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate())) &&
-		IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate()));
-}
-
-function PistolEquipped(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState)
-{
-	`LOG(GetFuncName() @ ItemState.GetMyTemplateName() @ CheckDualPistolGetsEquipped(UnitState, ItemState),, 'PrimarySecondaries');
-
-	//if (CheckDualPistolGetsEquipped(UnitState, ItemState))
-	//{
-	//}
-
-	// OnOldEquippedFn(ItemState, UnitState, NewGameState);
-
-
-
-	//if (HasDualPistolEquipped(UnitState))
-
-	//local XComGameState_Item PairedItem, RemoveItem;
-	//
-	//if (PairedTemplateName != '')
-	//{
-	//	RemoveItem = UnitState.GetItemInSlot(PairedSlot, NewGameState);
-	//	if (RemoveItem != none)
-	//	{
-	//		if (UnitState.RemoveItemFromInventory(RemoveItem, NewGameState))
-	//		{
-	//			NewGameState.RemoveStateObject(RemoveItem.ObjectID);
-	//		}
-	//		else
-	//		{
-	//			`RedScreen("Unable to remove item" @ RemoveItem.GetMyTemplateName() @ "in PairedSlot" @ PairedSlot @ "so paired item equip will fail -jbouscher / @gameplay");
-	//		}
-	//	}
-	//	PairedItemTemplate = class'X2ItemTemplateManager'.static.GetItemTemplateManager().FindItemTemplate(PairedTemplateName);
-	//	if (PairedItemTemplate != none)
-	//	{
-	//		PairedItem = PairedItemTemplate.CreateInstanceFromTemplate(NewGameState);
-	//		PairedItem.WeaponAppearance = ItemState.WeaponAppearance; // Copy appearance data
-	//		UnitState.AddItemToInventory(PairedItem, PairedSlot, NewGameState);
-	//		if (UnitState.GetItemInSlot(PairedSlot, NewGameState, true).ObjectID != PairedItem.ObjectID)
-	//		{
-	//			`RedScreen("Created a paired item ID" @ PairedItem.ObjectID @ "but we could not add it to the unit's inventory, destroying it instead -jbouscher / @gameplay");
-	//			NewGameState.PurgeGameStateForObjectID(PairedItem.ObjectID);
-	//		}
-	//	}
-	//}
-}
-
-function PistolUnEquipped(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState)
-{
-	`LOG(GetFuncName() @ ItemState.GetMyTemplateName() @ CheckDualPistolGetsEquipped(UnitState, ItemState),, 'PrimarySecondaries');
-	
-	//if (CheckDualPistolGetsEquipped(UnitState, ItemState))
-	//{
-	//	UnitState.EarnedSoldierAbilities.RemoveItem('DualShotPrimary');
-	//}
-
-	//OnOldUnEquippedFn(ItemState, UnitState, NewGameState);
-	
-	
-	
-	//local XComGameState_Item PairedItem;
-	//local XGWeapon VisWeapon;
-	//
-	//PairedItem = UnitState.GetItemInSlot(PairedSlot, NewGameState);
-	//if (PairedItem != none && PairedItem.GetMyTemplateName() == PairedTemplateName)
-	//{
-	//	if (UnitState.RemoveItemFromInventory(PairedItem, NewGameState))
-	//	{
-	//		VisWeapon = XGWeapon(PairedItem.GetVisualizer());
-	//		if (VisWeapon != none && VisWeapon.UnitPawn != none)
-	//		{
-	//			VisWeapon.UnitPawn.DetachItem(VisWeapon.GetEntity().Mesh);
-	//		}
-	//		NewGameState.RemoveStateObject(PairedItem.ObjectID);
-	//	}
-	//	else
-	//	{
-	//		`assert(false);
-	//	}
-	//}
 }

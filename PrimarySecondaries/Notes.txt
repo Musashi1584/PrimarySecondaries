@@ -1,0 +1,3 @@
+HL_ShellScreenIdleA -> AnimSet'HQ_ANIM.Anims.AS_ShellScreen'
+Idle_Normal_TG01 -> AnimSet'HQ_ANIM.Anims.AS_Armory'
+LL_IdleHiddenMovementA -> AnimSet'Soldier_ANIM.Anims.AS_Soldier'
