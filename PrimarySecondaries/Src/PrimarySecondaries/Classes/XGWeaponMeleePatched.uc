@@ -12,34 +12,41 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetSecondaryWeapon().GetMyTemplate());
 	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
 	
-	// Dual Melee
-	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasDualSwordsEquipped(UnitState))
+	`LOG(Class.Name @ "Spawn" @ m_kEntity @ ItemState.GetMyTemplateName() @ XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length,, 'PrimarySecondaries');
+
+	// Shields
+	if (SecondaryWeaponTemplate.WeaponCat == 'shield')
 	{
-		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimarySwordWeaponTemplate(WeaponTemplate))
+		if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
+		{
+			XComWeapon(m_kEntity).DefaultSocket = 'R_Hand';
+		}
+	}
+	// Dual Melee
+	else if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasDualSwordsEquipped(UnitState))
+	{
+		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
 		{
 			XComWeapon(m_kEntity).DefaultSocket = 'R_Hand';
 			`LOG(Class.Name @ "Patching socket to R_Hand",, 'PrimarySecondaries');
+
+			// Patching the sequence name from FF_MeleeA to FF_Melee to support random sets via prefixes A,B,C etc
+			XComWeapon(m_kEntity).WeaponFireAnimSequenceName = 'FF_Melee';
+			XComWeapon(m_kEntity).WeaponFireKillAnimSequenceName = 'FF_MeleeKill';
 		}
 
-		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsSecondarySwordWeaponTemplate(WeaponTemplate))
+		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
 		{
 			XComWeapon(m_kEntity).DefaultSocket = 'L_Hand';
 			`LOG(Class.Name @ "Patching socket to L_Hand",, 'PrimarySecondaries');
 		}
 
-		if(class'X2DownloadableContentInfo_PrimarySecondaries'.default.MeleeCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE)
+		if(WeaponTemplate.iRange == 0)
 		{
 			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+			XComWeapon(m_kEntity).CustomUnitPawnAnimsetsFemale.Length = 0;
 			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("DualSword.Anims.AS_Sword")));
 			`LOG(Class.Name @ "Adding DualSword.Anims.AS_Sword",, 'PrimarySecondaries');
-		}
-	}
-	// Shields
-	else if (SecondaryWeaponTemplate.WeaponCat == 'shield')
-	{
-		if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimarySwordWeaponTemplate(WeaponTemplate))
-		{
-			XComWeapon(m_kEntity).DefaultSocket = 'R_Hand';
 		}
 	}
 	// Primary Melee
@@ -48,19 +55,28 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 		// We are patching also secondary swords here if the primary is a pistol
 		if (WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon || InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE)
 		{
-			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
-			XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_Melee")));
+			if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
+			{
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsetsFemale.Length = 0;
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Melee")));
+			}
+			else
+			{
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsetsFemale.Length = 0;
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_KnifeMelee")));
+			}
 		}
 
-		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimarySwordWeaponTemplate(WeaponTemplate) ||
-			class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsSecondarySwordWeaponTemplate(WeaponTemplate))
-		{
-			XComWeapon(m_kEntity).DefaultSocket = 'SwordSheath';
-			`LOG(Class.Name @ "Patching socket to SwordSheath",, 'PrimarySecondaries');
-		}
+		//if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryMeleeWeaponTemplate(WeaponTemplate) ||
+		//	class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
+		//{
+		//	XComWeapon(m_kEntity).DefaultSocket = 'SwordSheath';
+		//	`LOG(Class.Name @ "Patching socket to SwordSheath",, 'PrimarySecondaries');
+		//}
 	}
 
-	`LOG(Class.Name @ "Spawn" @ m_kEntity @ ItemState.GetMyTemplateName() @ XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length,, 'PrimarySecondaries');
 
 	return m_kEntity;
 }

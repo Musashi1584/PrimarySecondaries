@@ -32,11 +32,11 @@ var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
 var config array<name> PistolCategories;
-var config array<name> MeleeCategories;
 var config int PRIMARY_PISTOLS_CLIP_SIZE;
 var config int PRIMARY_SAWEDOFF_CLIP_SIZE;
 var config int PRIMARY_PISTOLS_DAMAGE_MODIFER;
 var config bool bPrimaryPistolsInfiniteAmmo;
+var config bool bUseVisualPistolUpgrades;
 
 var delegate<OnEquippedDelegate> OnOldEquippedFn;
 var delegate<OnEquippedDelegate> OnOldUnequippedFn;
@@ -81,6 +81,22 @@ static event OnLoadedSavedGameToStrategy()
 	UpdateStorage();
 }
 
+/// <summary>
+/// Called after the Templates have been created (but before they are validated) while this DLC / Mod is installed.
+/// </summary>
+static event OnPostTemplatesCreated()
+{
+	PatchAbilityTemplates();
+	AddAttachments();
+	AddPrimarySecondaries();
+	CheckUniqueWeaponCategories();
+	if (default.bUseVisualPistolUpgrades)
+	{
+		ReplacePistolArchetypes();
+	}
+	//AddEqippDelegates();
+}
+
 static function UpdateStorage()
 {
 	local XComGameState NewGameState;
@@ -104,7 +120,7 @@ static function UpdateStorage()
 	foreach AllTemplateNames(TemplateName)
 	{
 		ItemTemplate = ItemTemplateMgr.FindItemTemplate(TemplateName);
-		if (!IsPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
+		if (!IsPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
 			continue;
 
 		if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
@@ -202,18 +218,7 @@ static function AddAttachment(name TemplateName, array<PistolWeaponAttachment> A
 	}
 }
 
-/// <summary>
-/// Called after the Templates have been created (but before they are validated) while this DLC / Mod is installed.
-/// </summary>
-static event OnPostTemplatesCreated()
-{
-	PatchAbilityTemplates();
-	AddAttachments();
-	AddPrimarySecondaries();
-	ReplacePistolArchetypes();
-	CheckUniqueWeaponCategories();
-	//AddEqippDelegates();
-}
+
 
 static function CheckUniqueWeaponCategories()
 {
@@ -421,7 +426,7 @@ static function AddPrimarySecondaries()
 				`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass,, 'PrimarySecondaries');
 			}
 
-			if (IsMeleeWeaponTemplate(WeaponTemplate))
+			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
 			{
 				ClonedTemplate = new class'X2WeaponTemplate' (WeaponTemplate);
 				ClonedTemplate.SetTemplateName(name(TemplateName $ "_Primary"));
@@ -430,7 +435,8 @@ static function AddPrimarySecondaries()
 				{
 					ClonedTemplate.Abilities.AddItem('SwordSlice');
 				}
-				//ClonedTemplate.Abilities.AddItem('PrimaryAnimSet');
+
+				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
 
 				ClonedTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
 				WeaponTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
@@ -488,26 +494,27 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	PrimaryWeapon = UnitState.GetPrimaryWeapon();
 	PrimaryWeaponTemplate = X2WeaponTemplate(PrimaryWeapon.GetMyTemplate());
 
-	`LOG(GetFuncName() @ UnitState.GetFullName() @ PrimaryWeaponTemplate.DataName, bLog, 'PrimarySecondaries');
+	//`LOG(GetFuncName() @ UnitState.GetFullName() @ PrimaryWeaponTemplate.DataName, bLog, 'PrimarySecondaries');
 
 	if (InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE &&
 		!HasDualPistolEquipped(UnitState) &&
 		!HasDualSwordsEquipped(UnitState) &&
-		!HasShieldEquipped(UnitState))
+		!HasShieldEquipped(UnitState)
+	)
 	{
 		// Force Personality_ByTheBook
 		UnitState.kAppearance.iAttitude = 0;
 		UnitState.UpdatePersonalityTemplate();
 		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("HQ_ANIM.Anims.AS_Armory_Unarmed")), 3);
-		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_Primary")), 4);
+		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
 		
 		Pawn.Mesh.UpdateAnimations();
 
-		foreach Pawn.Mesh.AnimSets(IterateAnimSet)
-		{
-			`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ IterateAnimSet, bLog, 'PrimarySecondaries');
-		}
-		`LOG(GetFuncName() @ UnitState.GetFullName() @ "------------------", bLog, 'PrimarySecondaries');
+		//foreach Pawn.Mesh.AnimSets(IterateAnimSet)
+		//{
+		//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ IterateAnimSet, bLog, 'PrimarySecondaries');
+		//}
+		//`LOG(GetFuncName() @ UnitState.GetFullName() @ "------------------", bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -523,15 +530,14 @@ static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int
 		{
 			Pawn.Mesh.AnimSets.AddItem(AnimSetToAdd);
 		}
-		`LOG(GetFuncName() @ "adding" @ AnimSetToAdd,, 'PrimarySecondaries');
+		//`LOG(GetFuncName() @ "adding" @ AnimSetToAdd,, 'PrimarySecondaries');
 	}
 }
 
 static function bool HasShieldEquipped(XComGameState_Unit UnitState)
 {
 	local X2WeaponTemplate SecondaryWeaponTemplate;
-	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetPrimaryWeapon().GetMyTemplate());
-
+	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetSecondaryWeapon().GetMyTemplate());
 	return SecondaryWeaponTemplate.WeaponCat == 'shield';
 }
 
@@ -561,12 +567,21 @@ static function bool IsSecondaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemp
 		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
 }
 
-static function bool IsMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
+static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
 	return WeaponTemplate != none &&
-		WeaponTemplate.StowedLocation == eSlot_RightBack &&
+		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
+		WeaponTemplate.iRange == 0;
+}
+
+static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
+{
+	return WeaponTemplate != none &&
 		WeaponTemplate.InventorySlot == eInvSlot_SecondaryWeapon &&
-		default.MeleeCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
+		WeaponTemplate.iRange == 0 &&
+		WeaponTemplate.WeaponCat != 'wristblade' &&
+		WeaponTemplate.WeaponCat != 'shield' &&
+		WeaponTemplate.WeaponCat != 'gauntlet';
 }
 
 static function bool HasDualPistolEquipped(XComGameState_Unit UnitState)
@@ -584,24 +599,10 @@ static function bool CheckDualPistolGetsEquipped(XComGameState_Unit UnitState, X
 		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate())));
 }
 
-static function bool IsPrimarySwordWeaponTemplate(X2WeaponTemplate WeaponTemplate)
-{
-	return WeaponTemplate != none &&
-		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
-		default.MeleeCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
-}
-
-static function bool IsSecondarySwordWeaponTemplate(X2WeaponTemplate WeaponTemplate)
-{
-	return WeaponTemplate != none &&
-		WeaponTemplate.InventorySlot == eInvSlot_SecondaryWeapon &&
-		default.MeleeCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
-}
-
 static function bool HasDualSwordsEquipped(XComGameState_Unit UnitState)
 {
-	return IsPrimarySwordWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate())) &&
-		IsSecondarySwordWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate()));
+	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate())) &&
+		IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon).GetMyTemplate()));
 }
 
 function PistolEquipped(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState)

@@ -71,7 +71,7 @@ static function X2AbilityTemplate PrimaryAnimSet()
 	Template.AbilityTriggers.AddItem(default.UnitPostBeginPlayTrigger);
 
 	AnimSets = new class'X2Effect_AdditionalAnimSets';
-	AnimSets.AddAnimSetWithPath("PrimaryPistols_ANIM.Anims.AS_Primary");
+	AnimSets.AddAnimSetWithPath("PrimarySecondaries_ANIM.Anims.AS_Primary");
 	AnimSets.BuildPersistentEffect(1, true, false, false);
 	Template.AddTargetEffect(AnimSets);
 	

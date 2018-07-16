@@ -34,7 +34,7 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimaryPistolsMod.upk">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Content\PrimaryPistols_ANIM.upk">
+    <Content Include="Content\PrimarySecondaries_ANIM.upk">
       <SubType>Content</SubType>
     </Content>
     <Content Include="ReadMe.txt" />

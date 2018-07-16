@@ -57,13 +57,13 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 			if (WeaponTemplate.WeaponCat == 'sidearm')
 			{
 				//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
-				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_AutoPistol")));
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_AutoPistol")));
 				`LOG(Class.Name @ "Adding AS_AutoPistol",, 'PrimarySecondaries');
 			}
 			else if (WeaponTemplate.WeaponCat == 'pistol')
 			{
 				//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
-				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimaryPistols_ANIM.Anims.AS_PrimaryPistol")));
+				XComWeapon(m_kEntity).CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_PrimaryPistol")));
 				`LOG(Class.Name @ "Adding AS_PrimaryPistol",, 'PrimarySecondaries');
 			}
 		}
@@ -72,8 +72,11 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 		if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryPistolWeaponTemplate(WeaponTemplate) ||
 			class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsSecondaryPistolWeaponTemplate(WeaponTemplate))
 		{
-			XComWeapon(m_kEntity).DefaultSocket = 'PistolHolster';
-			`LOG(Class.Name @ "Patching socket to PistolHolster",, 'PrimarySecondaries');
+			if (WeaponTemplate.WeaponCat != 'sawedoffshotgun')
+			{
+				XComWeapon(m_kEntity).DefaultSocket = 'PistolHolster';
+				`LOG(Class.Name @ "Patching socket to PistolHolster",, 'PrimarySecondaries');
+			}
 		}
 	}
 
