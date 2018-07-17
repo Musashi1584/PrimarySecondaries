@@ -32,14 +32,13 @@ var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
 var config array<name> PistolCategories;
+var config array<name> PatchMeleeCategoriesAnimBlackList;
 var config int PRIMARY_PISTOLS_CLIP_SIZE;
 var config int PRIMARY_SAWEDOFF_CLIP_SIZE;
 var config int PRIMARY_PISTOLS_DAMAGE_MODIFER;
 var config bool bPrimaryPistolsInfiniteAmmo;
 var config bool bUseVisualPistolUpgrades;
 
-var delegate<OnEquippedDelegate> OnOldEquippedFn;
-var delegate<OnEquippedDelegate> OnOldUnequippedFn;
 
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
 
@@ -461,8 +460,11 @@ static function AddPrimarySecondaries()
 
 				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
 
-				ClonedTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
-				WeaponTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
+				if (WeaponTemplate.GameplayInstanceClass == class'XGWeapon')
+				{
+					ClonedTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
+					WeaponTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
+				}
 			}
 
 			if (ClonedTemplate != none)
@@ -510,7 +512,7 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	local AnimSet IterateAnimSet;
 	local bool bLog;
 
-	bLog = true;
+	bLog = false;
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{

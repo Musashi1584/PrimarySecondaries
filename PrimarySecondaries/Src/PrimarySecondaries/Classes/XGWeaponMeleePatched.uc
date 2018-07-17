@@ -15,7 +15,7 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 	`LOG(Class.Name @ "Spawn" @ m_kEntity @ ItemState.GetMyTemplateName() @ XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length,, 'PrimarySecondaries');
 
 	// Shields
-	if (SecondaryWeaponTemplate.WeaponCat == 'shield')
+	if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasShieldEquipped(UnitState))
 	{
 		if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
 		{
@@ -49,11 +49,14 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 			`LOG(Class.Name @ "Adding DualSword.Anims.AS_Sword",, 'PrimarySecondaries');
 		}
 	}
-	// Primary Melee
-	else
+	// Primary Melee (We are patching also secondary swords here if the primary is a pistol)
+	else if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
-		// We are patching also secondary swords here if the primary is a pistol
-		if (WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon || InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE)
+		// 
+		if (
+			(WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon || InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE) &&
+			class'X2DownloadableContentInfo_PrimarySecondaries'.default.PatchMeleeCategoriesAnimBlackList.Find(WeaponTemplate.WeaponCat) == INDEX_NONE
+		)
 		{
 			if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 			{

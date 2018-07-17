@@ -41,7 +41,7 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 		}
 	}
 	// Shields
-	else if (SecondaryWeaponTemplate.WeaponCat == 'shield')
+	else if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasShieldEquipped(UnitState))
 	{
 		if (WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon && (WeaponTemplate.WeaponCat == 'sidearm' || WeaponTemplate.WeaponCat == 'pistol'))
 		{
@@ -49,7 +49,7 @@ simulated function Actor CreateEntity(optional XComGameState_Item ItemState=none
 		}
 	}
 	// Primary secondaries
-	else
+	else if (class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
 		// We are patching also secondary pistols here if the primary is a sword
 		if (WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon || InStr(string(PrimaryWeaponTemplate.DataName), "_Primary") != INDEX_NONE)
