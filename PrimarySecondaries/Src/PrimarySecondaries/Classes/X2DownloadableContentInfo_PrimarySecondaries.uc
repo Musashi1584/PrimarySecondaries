@@ -514,7 +514,7 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 
 	bLog = false;
 	
-	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
+	if (UnitState.IsSoldier() && HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
 		// Force Personality_ByTheBook
 		UnitState.kAppearance.iAttitude = 0;
