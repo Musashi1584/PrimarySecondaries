@@ -32,5 +32,8 @@ Krakah for the pistol attachments.
 Mod troubleshooting
 https://www.reddit.com/r/xcom2mods/wiki/mod_troubleshooting
 
-Donations
-[url=https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5PPVEBYPKGKBN]donate link[/url]
+[h1]Patreon[/h1]
+Have look at my work in progress and infos on my mods at my patreon page.
+Your really like my mods and would like to help me have more time for modding? Consider become a patreon :)
+
+https://www.patreon.com/musashi1584

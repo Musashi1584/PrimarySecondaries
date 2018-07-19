@@ -442,9 +442,6 @@ static function AddPrimarySecondaries()
 				ClonedTemplate.InfiniteAmmo = default.bPrimaryPistolsInfiniteAmmo;
 				ClonedTemplate.BaseDamage.Damage += default.PRIMARY_PISTOLS_DAMAGE_MODIFER;
 				
-				ClonedTemplate.GameplayInstanceClass = class'XGWeaponPatched';
-				WeaponTemplate.GameplayInstanceClass = class'XGWeaponPatched';
-				
 				`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass,, 'PrimarySecondaries');
 			}
 
@@ -459,12 +456,6 @@ static function AddPrimarySecondaries()
 				}
 
 				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
-
-				if (WeaponTemplate.GameplayInstanceClass == class'XGWeapon')
-				{
-					ClonedTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
-					WeaponTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
-				}
 			}
 
 			if (ClonedTemplate != none)
@@ -507,12 +498,77 @@ static function AddPrimarySecondaries()
 	ItemTemplateManager.LoadAllContent();
 }
 
+static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, optional XComGameState_Item ItemState=none)
+{
+	local X2WeaponTemplate WeaponTemplate;
+	local XComGameState_Unit UnitState;
+
+	if (ItemState == none)
+	{
+		return;
+	}
+
+	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
+	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
+	
+	`LOG(default.Class.Name @ GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length,, 'PrimarySecondaries');
+
+	// Primary Melee (We are patching also secondary swords/pistol here if the primary is a sword/pistol)
+	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
+	{
+		if (
+			(WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon ||
+			InStr(string(X2WeaponTemplate(UnitState.GetPrimaryWeapon().GetMyTemplate()).DataName), "_Primary") != INDEX_NONE) &&
+			default.PatchMeleeCategoriesAnimBlackList.Find(WeaponTemplate.WeaponCat) == INDEX_NONE
+		)
+		{
+			if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
+			{
+				if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
+				{
+					Weapon.CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Melee")));
+				}
+				else
+				{
+					Weapon.CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_KnifeMelee")));
+				}
+			}
+			
+			if (IsPrimaryPistolWeaponTemplate(WeaponTemplate))
+			{
+				if (WeaponTemplate.WeaponCat == 'sidearm')
+				{
+					//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_AutoPistol")));
+					`LOG(default.Class @ "Adding AS_AutoPistol",, 'PrimarySecondaries');
+				}
+				else if (WeaponTemplate.WeaponCat == 'pistol')
+				{
+					//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_PrimaryPistol")));
+					`LOG(default.Class @ "Adding AS_PrimaryPistol",, 'PrimarySecondaries');
+				}
+			}
+		}
+	}
+}
+
+
 static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameState_Unit UnitState, XComUnitPawn Pawn)
 {
 	local AnimSet IterateAnimSet;
 	local bool bLog;
 
 	bLog = false;
+
+	if (!UnitState.IsSoldier())
+	{
+		return;
+	}
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
