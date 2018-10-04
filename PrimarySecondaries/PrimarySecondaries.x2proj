@@ -43,6 +43,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimarySecondaries_ANIM.upk">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Content\PrimarySecondaries_Armory.upk">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Notes.txt">
       <SubType>Content</SubType>
     </Content>
@@ -67,16 +70,13 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Src\PrimarySecondaries\Classes\X2Ability_PrimarySecondaries.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2Condition_NotDualPistols.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2DownloadableContentInfo_PrimarySecondaries.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2Item_PrimarySecondaries.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\PrimarySecondaries\Classes\XGWeaponMeleePatched.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\PrimarySecondaries\Classes\XGWeaponPatched.uc">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>
