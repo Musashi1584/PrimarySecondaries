@@ -26,8 +26,9 @@ static function X2AbilityTemplate QuickDrawPrimary()
 
 static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bonus, float DetectionModifier)
 {
-	local X2AbilityTemplate                 Template;	
+	local X2AbilityTemplate					Template;	
 	local X2Effect_PersistentStatChange		PersistentStatChangeEffect;
+	local X2Effect_BonusWeaponDamage		BonusDamageEffect;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, TemplateName);
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_item_nanofibervest";
@@ -48,6 +49,12 @@ static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bon
 	PersistentStatChangeEffect.AddPersistentStatChange(eStat_DetectionModifier, DetectionModifier);
 	Template.AddTargetEffect(PersistentStatChangeEffect);
 	
+	BonusDamageEffect = new class'X2Effect_BonusWeaponDamage';
+	BonusDamageEffect.BonusDmg = class'X2DownloadableContentInfo_PrimarySecondaries'.default.PRIMARY_PISTOLS_DAMAGE_MODIFER;
+	Template.AddTargetEffect(BonusDamageEffect);
+
+	Template.AbilityTargetConditions.AddItem(new class'PrimarySecondaries.X2Condition_NotDualPistols');
+
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
 	
 	return Template;

@@ -38,6 +38,7 @@ var config int PRIMARY_SAWEDOFF_CLIP_SIZE;
 var config int PRIMARY_PISTOLS_DAMAGE_MODIFER;
 var config bool bPrimaryPistolsInfiniteAmmo;
 var config bool bUseVisualPistolUpgrades;
+var config bool bLog;
 
 
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
@@ -54,7 +55,7 @@ static function bool IsModInstalled(name X2DCLName)
 	{
 		if (Mod.Class.Name == X2DCLName)
 		{
-			`Log("Mod installed:" @ Mod.Class);
+			`Log("Mod installed:" @ Mod.Class, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog);
 			return true;
 		}
 	}
@@ -134,7 +135,7 @@ static function UpdateStorage()
 			ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
 			if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 			{
-				`LOG("Adding to HQ" @ ItemTemplate.DataName,, 'PrimarySecondaries');
+				`LOG("Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
 				NewGameState.AddStateObject(NewItemState);
 				XComHQ.AddItemToHQInventory(NewItemState);
@@ -149,7 +150,7 @@ static function UpdateStorage()
 		{
 			if (!XComHQ.HasItem(ItemTemplates[i]))
 			{
-				`Log(ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory",, 'PrimarySecondaries');
+				`Log(ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				NewItemState = ItemTemplates[i].CreateInstanceFromTemplate(NewGameState);
 				NewGameState.AddStateObject(NewItemState);
 				XComHQ.AddItemToHQInventory(NewItemState);
@@ -235,7 +236,7 @@ static function AddAttachment(name TemplateName, array<PistolWeaponAttachment> A
 					break;
 			}
 			Template.AddUpgradeAttachment(Attachment.AttachSocket, Attachment.UIArmoryCameraPointTag, Attachment.MeshName, Attachment.ProjectileName, Attachment.MatchWeaponTemplate, Attachment.AttachToPawn, Attachment.IconName, Attachment.InventoryIconName, Attachment.InventoryCategoryIcon, CheckFN);
-			//`LOG("Attachment for "@TemplateName @Attachment.AttachSocket @Attachment.UIArmoryCameraPointTag @Attachment.MeshName @Attachment.ProjectileName @Attachment.MatchWeaponTemplate @Attachment.AttachToPawn @Attachment.IconName @Attachment.InventoryIconName @Attachment.InventoryCategoryIcon,, 'PrimarySecondaries');
+			`LOG("Attachment for "@TemplateName @Attachment.AttachSocket @Attachment.UIArmoryCameraPointTag @Attachment.MeshName @Attachment.ProjectileName @Attachment.MatchWeaponTemplate @Attachment.AttachToPawn @Attachment.IconName @Attachment.InventoryIconName @Attachment.InventoryCategoryIcon, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 	}
 }
@@ -251,7 +252,7 @@ static function CheckUniqueWeaponCategories()
 
 	foreach ItemTemplateManager.UniqueEquipCategories(Category)
 	{
-		`LOG('UniqueEquipCategories' @ Category,, 'PrimarySecondaries');
+		`LOG('UniqueEquipCategories' @ Category, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -311,7 +312,7 @@ static function ReplacePistolArchetypes()
 				WeaponTemplate.UIArmoryCameraPointTag = 'UIPawnLocation_WeaponUpgrade_Shotgun';
 
 				ItemTemplateManager.AddItemTemplate(WeaponTemplate, true);
-				`Log("Patching " @ ItemTemplate.DataName @ "with" @ Replacement.GameArchetype @ "and" @ Replacement.NumUpgradeSlots @ "upgrade slots",, 'PrimarySecondaries');
+				`Log("Patching " @ ItemTemplate.DataName @ "with" @ Replacement.GameArchetype @ "and" @ Replacement.NumUpgradeSlots @ "upgrade slots", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		}
 	}
@@ -357,7 +358,7 @@ static function PatchAbilityTemplates()
 					NewAmmoCosts.iAmmo = AbilityAmmoCost.Ammo;
 					Template.AbilityCosts.AddItem(NewAmmoCosts);
 				}
-				`LOG("Patching Template" @ AbilityAmmoCost.Ability @ "adding" @ AbilityAmmoCost.Ammo @ "ammo cost",, 'PrimarySecondaries');
+				`LOG("Patching Template" @ AbilityAmmoCost.Ability @ "adding" @ AbilityAmmoCost.Ammo @ "ammo cost", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		}
 	}
@@ -374,7 +375,7 @@ static function PatchAbilityTemplates()
 			{
 				ActionPointCost.DoNotConsumeAllSoldierAbilities.AddItem('QuickDrawPrimary');
 				ActionPointCost.DoNotConsumeAllSoldierAbilities.AddItem('Quickdraw');
-				`LOG("Patching Template" @ TemplateName @ "adding QuickDrawPrimary and Quickdraw to DoNotConsumeAllSoldierAbilities",, 'PrimarySecondaries');
+				`LOG("Patching Template" @ TemplateName @ "adding QuickDrawPrimary and Quickdraw to DoNotConsumeAllSoldierAbilities", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		}
 	}
@@ -412,7 +413,7 @@ static function AddPrimarySecondaries()
 			if (WeaponTemplate == none)
 				continue;
 
-			//`Log(WeaponTemplate.DataName @ WeaponTemplate.StowedLocation @ WeaponTemplate.WeaponCat, , 'PrimaryMeleeWeapons');
+			`Log(WeaponTemplate.DataName @ WeaponTemplate.StowedLocation @ WeaponTemplate.WeaponCat, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimaryMeleeWeapons');
 
 			if (IsPistolWeaponTemplate(WeaponTemplate))
 			{
@@ -421,8 +422,8 @@ static function AddPrimarySecondaries()
 				ClonedTemplate.InventorySlot =  eInvSlot_PrimaryWeapon;
 				ClonedTemplate.UIArmoryCameraPointTag = 'UIPawnLocation_WeaponUpgrade_Shotgun';
 
-				ClonedTemplate.Abilities.AddItem('DualShotPrimary');
-				ClonedTemplate.Abilities.AddItem('DualPistolOverwatch');
+				//ClonedTemplate.Abilities.AddItem('DualShotPrimary');
+				//ClonedTemplate.Abilities.AddItem('DualPistolOverwatch');
 				
 				if (ClonedTemplate.Abilities.Find('PistolStandardShot') == INDEX_NONE)
 				{
@@ -434,18 +435,15 @@ static function AddPrimarySecondaries()
 				if (ClonedTemplate.WeaponCat == 'sawedoffshotgun')
 				{
 					ClonedTemplate.iClipSize = default.PRIMARY_SAWEDOFF_CLIP_SIZE;
+					ClonedTemplate.Abilities.AddItem('Reload');
 				}
 				else
 				{
 					ClonedTemplate.iClipSize = default.PRIMARY_PISTOLS_CLIP_SIZE;
 				}
 				ClonedTemplate.InfiniteAmmo = default.bPrimaryPistolsInfiniteAmmo;
-				ClonedTemplate.BaseDamage.Damage += default.PRIMARY_PISTOLS_DAMAGE_MODIFER;
 				
-				ClonedTemplate.GameplayInstanceClass = class'XGWeaponPatched';
-				WeaponTemplate.GameplayInstanceClass = class'XGWeaponPatched';
-				
-				`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass,, 'PrimarySecondaries');
+				`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 
 			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
@@ -459,12 +457,6 @@ static function AddPrimarySecondaries()
 				}
 
 				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
-
-				if (WeaponTemplate.GameplayInstanceClass == class'XGWeapon')
-				{
-					ClonedTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
-					WeaponTemplate.GameplayInstanceClass = class'XGWeaponMeleePatched';
-				}
 			}
 
 			if (ClonedTemplate != none)
@@ -485,7 +477,7 @@ static function AddPrimarySecondaries()
 
 					foreach UpgradeAttachmentsToAdd(UpgradeAttachment)
 					{
-						//`Log("Adding Attachment" @ UpgradeAttachment.ApplyToWeaponTemplate @ UpgradeAttachment.AttachMeshName,, 'PrimarySecondaries');
+						`Log("Adding Attachment" @ UpgradeAttachment.ApplyToWeaponTemplate @ UpgradeAttachment.AttachMeshName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 						UpgradeTemplate.UpgradeAttachments.AddItem(UpgradeAttachment);
 					}
 				}
@@ -500,19 +492,85 @@ static function AddPrimarySecondaries()
 
 		if (ClonedTemplate != none)
 		{
-			`Log("Generating Template" @ TemplateName $ "_Primary with" @ ClonedTemplate.DefaultAttachments.Length @ "default attachments",, 'PrimarySecondaries');
+			`Log("Generating Template" @ TemplateName $ "_Primary with" @ ClonedTemplate.DefaultAttachments.Length @ "default attachments", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 	}
 
 	ItemTemplateManager.LoadAllContent();
 }
 
+static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, optional XComGameState_Item ItemState=none)
+{
+	local X2WeaponTemplate WeaponTemplate;
+	local XComGameState_Unit UnitState;
+
+	if (ItemState == none)
+	{
+		return;
+	}
+	
+	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
+
+	if (!UnitState.IsSoldier())
+	{
+		return;
+	}
+
+	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
+	
+	`LOG(default.Class.Name @ GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+
+	// Primary Melee (We are patching also secondary swords/pistol here if the primary is a sword/pistol)
+	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
+	{
+		if (
+			(WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon ||
+			InStr(string(X2WeaponTemplate(UnitState.GetPrimaryWeapon().GetMyTemplate()).DataName), "_Primary") != INDEX_NONE) &&
+			default.PatchMeleeCategoriesAnimBlackList.Find(WeaponTemplate.WeaponCat) == INDEX_NONE
+		)
+		{
+			if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
+			{
+				if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
+				{
+					Weapon.CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Melee")));
+				}
+				else
+				{
+					Weapon.CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_KnifeMelee")));
+				}
+			}
+			
+			if (IsPrimaryPistolWeaponTemplate(WeaponTemplate))
+			{
+				if (WeaponTemplate.WeaponCat == 'sidearm')
+				{
+					//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_AutoPistol")));
+					`LOG(default.Class @ "Adding AS_AutoPistol", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				}
+				else if (WeaponTemplate.WeaponCat == 'pistol')
+				{
+					//XComWeapon(m_kEntity).CustomUnitPawnAnimsets.Length = 0;
+					Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_PrimaryPistol")));
+					`LOG(default.Class @ "Adding AS_PrimaryPistol", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				}
+			}
+		}
+	}
+}
+
+
 static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameState_Unit UnitState, XComUnitPawn Pawn)
 {
-	local AnimSet IterateAnimSet;
-	local bool bLog;
-
-	bLog = false;
+	if (!UnitState.IsSoldier())
+	{
+		return;
+	}
 	
 	if (UnitState.IsSoldier() && HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
@@ -523,13 +581,19 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
 		
 		Pawn.Mesh.UpdateAnimations();
-
-		foreach Pawn.Mesh.AnimSets(IterateAnimSet)
-		{
-			`LOG(GetFuncName() @ UnitState.GetFullName() @ "current animsets: " @ IterateAnimSet, bLog, 'PrimarySecondaries');
-		}
-		`LOG(GetFuncName() @ UnitState.GetFullName() @ "------------------", bLog, 'PrimarySecondaries');
 	}
+
+	//if (HasPrimaryMeleeEquipped(UnitState))
+	//{
+	//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "adding PrimarySecondaries_Armory AS_Sword",  class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	//	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Sword")));
+	//}
+	//
+	//if (HasPrimaryPistolEquipped(UnitState))
+	//{
+	//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "adding PrimarySecondaries_Armory AS_Pistol",  class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	//	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Pistol")));
+	//}
 }
 
 static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int Index = -1)
@@ -544,7 +608,7 @@ static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int
 		{
 			Pawn.Mesh.AnimSets.AddItem(AnimSetToAdd);
 		}
-		//`LOG(GetFuncName() @ "adding" @ AnimSetToAdd,, 'PrimarySecondaries');
+		`LOG(GetFuncName() @ "adding" @ AnimSetToAdd, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -626,7 +690,10 @@ static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplat
 {
 	return WeaponTemplate != none &&
 		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
-		WeaponTemplate.iRange == 0;
+		WeaponTemplate.iRange == 0 &&
+		WeaponTemplate.WeaponCat != 'wristblade' &&
+		WeaponTemplate.WeaponCat != 'shield' &&
+		WeaponTemplate.WeaponCat != 'gauntlet';
 }
 
 static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
