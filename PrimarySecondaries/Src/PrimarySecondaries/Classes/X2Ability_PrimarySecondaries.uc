@@ -47,7 +47,9 @@ static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bon
 	PersistentStatChangeEffect.SetDisplayInfo(ePerkBuff_Passive, Template.LocFriendlyName, Template.GetMyLongDescription(), Template.IconImage, false, , Template.AbilitySourceName);
 	PersistentStatChangeEffect.AddPersistentStatChange(eStat_Mobility, Bonus);
 	PersistentStatChangeEffect.AddPersistentStatChange(eStat_DetectionModifier, DetectionModifier);
+	Template.SetUIStatMarkup(class'XLocalizedData'.default.MobilityLabel, eStat_Mobility, Bonus);
 	Template.AddTargetEffect(PersistentStatChangeEffect);
+	
 	
 	BonusDamageEffect = new class'X2Effect_BonusWeaponDamage';
 	BonusDamageEffect.BonusDmg = class'X2DownloadableContentInfo_PrimarySecondaries'.default.PRIMARY_PISTOLS_DAMAGE_MODIFER;

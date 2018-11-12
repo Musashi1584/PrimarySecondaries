@@ -582,18 +582,6 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 		
 		Pawn.Mesh.UpdateAnimations();
 	}
-
-	//if (HasPrimaryMeleeEquipped(UnitState))
-	//{
-	//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "adding PrimarySecondaries_Armory AS_Sword",  class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-	//	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Sword")));
-	//}
-	//
-	//if (HasPrimaryPistolEquipped(UnitState))
-	//{
-	//	`LOG(GetFuncName() @ UnitState.GetFullName() @ "adding PrimarySecondaries_Armory AS_Pistol",  class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-	//	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Pistol")));
-	//}
 }
 
 static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int Index = -1)
