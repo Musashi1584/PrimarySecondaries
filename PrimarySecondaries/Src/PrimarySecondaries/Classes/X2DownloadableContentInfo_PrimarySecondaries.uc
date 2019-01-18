@@ -68,27 +68,24 @@ static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_
 	class'ShellMapMatinee'.static.PatchAllLoadedMatinees(UnitPawn, UnitState, SearchState);
 }
 
-/// <summary>
-/// This method is run if the player loads a saved game that was created prior to this DLC / Mod being installed, and allows the 
-/// DLC / Mod to perform custom processing in response. This will only be called once the first time a player loads a save that was
-/// create without the content installed. Subsequent saves will record that the content was installed.
-/// </summary>
+static event InstallNewCampaign(XComGameState StartState)
+{
+	local XComGameState_HeadquartersXCom XComHQ;
+
+	XComHQ = GetNewXComHQState(StartState);
+	AddPrimaryVariants(XComHQ, StartState);
+}
+
 static event OnLoadedSavedGame()
 {
 	UpdateStorage();
 }
 
-/// <summary>
-/// This method is run when the player loads a saved game directly into Strategy while this DLC is installed
-/// </summary>
 static event OnLoadedSavedGameToStrategy()
 {
 	UpdateStorage();
 }
 
-/// <summary>
-/// Called after the Templates have been created (but before they are validated) while this DLC / Mod is installed.
-/// </summary>
 static event OnPostTemplatesCreated()
 {
 	PatchAbilityTemplates();
@@ -107,19 +104,44 @@ static function UpdateStorage()
 	local XComGameState NewGameState;
 	local XComGameStateHistory History;
 	local XComGameState_HeadquartersXCom XComHQ;
-	local X2ItemTemplateManager ItemTemplateMgr;
-	local X2DataTemplate ItemTemplate;
-	local array<X2ItemTemplate> ItemTemplates;
-	local name TemplateName;
-	local XComGameState_Item NewItemState;
-	local array<name> AllTemplateNames;
-	local int i;
 
 	History = `XCOMHISTORY;
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
-	XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
-	XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
 
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
+	XComHQ = GetNewXComHQState(NewGameState);
+
+	AddPrimaryVariants(XComHQ, NewGameState);
+
+	History.AddGameStateToHistory(NewGameState);
+	History.CleanupPendingGameState(NewGameState);
+}
+
+static function UpdateStorageForItem(X2DataTemplate ItemTemplate)
+{
+	local XComGameState NewGameState;
+	local XComGameStateHistory History;
+	local XComGameState_HeadquartersXCom XComHQ;
+
+	History = `XCOMHISTORY;
+
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
+	XComHQ = GetNewXComHQState(NewGameState);
+
+	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
+
+	History.AddGameStateToHistory(NewGameState);
+	History.CleanupPendingGameState(NewGameState);
+}
+
+static function AddPrimaryVariants(XComGameState_HeadquartersXCom XComHQ, XComGameState NewGameState)
+{
+	local X2ItemTemplateManager ItemTemplateMgr;
+	local array<X2ItemTemplate> ItemTemplates;
+	local X2DataTemplate ItemTemplate;
+	local XComGameState_Item NewItemState;
+	local array<name> AllTemplateNames;
+	local name TemplateName;
+	local int i;
 
 	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 	ItemTemplateMgr.GetTemplateNames(AllTemplateNames);
@@ -127,20 +149,8 @@ static function UpdateStorage()
 	foreach AllTemplateNames(TemplateName)
 	{
 		ItemTemplate = ItemTemplateMgr.FindItemTemplate(TemplateName);
-		if (!IsPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
-			continue;
 
-		if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
-		{
-			ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
-			if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
-			{
-				`LOG("Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-				NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
-				NewGameState.AddStateObject(NewItemState);
-				XComHQ.AddItemToHQInventory(NewItemState);
-			}
-		}
+		AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
 	}
 
 	ItemTemplates.AddItem(ItemTemplateMgr.FindItemTemplate('EmptySecondary'));
@@ -150,16 +160,49 @@ static function UpdateStorage()
 		{
 			if (!XComHQ.HasItem(ItemTemplates[i]))
 			{
-				`Log(ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				`Log(GetFuncName() @ ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				NewItemState = ItemTemplates[i].CreateInstanceFromTemplate(NewGameState);
-				NewGameState.AddStateObject(NewItemState);
-				XComHQ.AddItemToHQInventory(NewItemState);
+				NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID);
+				XComHQ.PutItemInInventory(NewGameState, NewItemState);
 			}
 		}
 	}
+}
 
-	History.AddGameStateToHistory(NewGameState);
-	History.CleanupPendingGameState(NewGameState);
+static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState_HeadquartersXCom XComHQ, XComGameState NewGameState)
+{
+	local X2ItemTemplateManager ItemTemplateMgr;
+	local XComGameState_Item NewItemState;
+
+	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+
+	if (!IsPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
+	{
+		return;
+	}
+
+	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName @ "XComHQ" @ XComHQ, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+
+	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
+	{
+		ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
+		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
+		{
+			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
+			NewItemState.Quantity = 1;
+			//XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID));
+			XComHQ.PutItemInInventory(NewGameState, NewItemState);
+		}
+		else
+		{
+			`LOG(GetFuncName() @ "Primary variant of" @ ItemTemplate.DataName @ "is already present", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		}
+	}
+	else
+	{
+		`LOG(GetFuncName() @ ItemTemplate.DataName @ "is not in inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	}
 }
 
 
@@ -692,4 +735,27 @@ static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTempl
 		WeaponTemplate.WeaponCat != 'wristblade' &&
 		WeaponTemplate.WeaponCat != 'shield' &&
 		WeaponTemplate.WeaponCat != 'gauntlet';
+}
+
+static function XComGameState_HeadquartersXCom GetNewXComHQState(XComGameState NewGameState)
+{
+	local XComGameState_HeadquartersXCom NewXComHQ;
+
+	foreach NewGameState.IterateByClassType(class'XComGameState_HeadquartersXCom', NewXComHQ)
+	{
+		break;
+	}
+
+	if(NewXComHQ == none)
+	{
+		NewXComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+		NewXComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', NewXComHQ.ObjectID));
+	}
+
+	return NewXComHQ;
+}
+
+exec function PSUpdateStorage()
+{
+	UpdateStorage();
 }
