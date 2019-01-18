@@ -177,7 +177,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 
 	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 
-	if (!IsPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
+	if (!IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(ItemTemplate)) && !IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(ItemTemplate)))
 	{
 		return;
 	}
@@ -680,12 +680,7 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 				
 			}
 		}
-		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("HQ_ANIM.Anims.AS_Armory_Unarmed")), 3);
-		AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
 		
-		Pawn.Mesh.UpdateAnimations();
-	}
-}
 
 		if (AnimSetPath != "")
 		{
@@ -932,4 +927,22 @@ exec function DebugLeftHandSocket(
 
 		SkeletalMeshComponent(XComWeapon(WeaponVisualizer.m_kEntity).Mesh).AppendSockets(NewSockets, true);
 	}
+}
+
+static function XComGameState_HeadquartersXCom GetNewXComHQState(XComGameState NewGameState)
+{
+	local XComGameState_HeadquartersXCom NewXComHQ;
+
+	foreach NewGameState.IterateByClassType(class'XComGameState_HeadquartersXCom', NewXComHQ)
+	{
+		break;
+	}
+
+	if(NewXComHQ == none)
+	{
+		NewXComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+		NewXComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', NewXComHQ.ObjectID));
+	}
+
+	return NewXComHQ;
 }
