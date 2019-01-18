@@ -18,6 +18,7 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Folder Include="Config\" />
     <Folder Include="Content\" />
     <Folder Include="Localization\" />
+    <Folder Include="CookedPCConsole" />
     <Folder Include="Src\" />
     <Folder Include="Src\PrimarySecondaries\" />
     <Folder Include="Src\PrimarySecondaries\Classes\" />
@@ -45,6 +46,18 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
       <SubType>Content</SubType>
     </Content>
     <Content Include="Content\PrimarySecondaries_Armory.upk">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Content\PrimarySecondaries_AutoPistol.upk">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Content\PrimarySecondaries_Pistol.upk">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Content\PrimarySecondaries_SwordAndPistol.upk">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Notes.txt">
@@ -75,6 +88,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2DownloadableContentInfo_PrimarySecondaries.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2EventListener_PrimarySecondaries_Strategy.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2Item_PrimarySecondaries.uc">

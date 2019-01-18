@@ -1,7 +1,7 @@
 class MSEventListenerTemplate extends X2EventListenerTemplate;
 
-// Hack in here to start the actor as early as possible in tactical game
 function RegisterForEvents()
 {
+	// Hack in here to start the actor as early as possible in tactical game
 	`XCOMGAME.Spawn(class'PrimarySecondaries.DropShipMatinee_Actor');
 }
