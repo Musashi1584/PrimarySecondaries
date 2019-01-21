@@ -164,7 +164,7 @@ static function AddPrimaryVariants(XComGameState_HeadquartersXCom XComHQ, XComGa
 				`Log(GetFuncName() @ ItemTemplates[i].GetItemFriendlyName() @ " not found, adding to inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				NewItemState = ItemTemplates[i].CreateInstanceFromTemplate(NewGameState);
 				NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID);
-				XComHQ.PutItemInInventory(NewGameState, NewItemState);
+				XComHQ.AddItemToHQInventory(NewItemState);
 			}
 		}
 	}
@@ -182,7 +182,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 		return;
 	}
 
-	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName @ "XComHQ" @ XComHQ, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
@@ -193,7 +193,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 			NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
 			NewItemState.Quantity = 1;
 			//XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID));
-			XComHQ.PutItemInInventory(NewGameState, NewItemState);
+			XComHQ.AddItemToHQInventory(NewItemState);
 		}
 		else
 		{
