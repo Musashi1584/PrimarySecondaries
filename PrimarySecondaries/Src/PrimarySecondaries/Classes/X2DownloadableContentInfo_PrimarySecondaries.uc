@@ -72,19 +72,22 @@ static event InstallNewCampaign(XComGameState StartState)
 {
 	local XComGameState_HeadquartersXCom XComHQ;
 
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+
 	XComHQ = GetNewXComHQState(StartState);
 	AddPrimaryVariants(XComHQ, StartState);
 }
 
 static event OnLoadedSavedGame()
 {
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	UpdateStorage();
 }
 
-static event OnLoadedSavedGameToStrategy()
-{
-	UpdateStorage();
-}
+//static event OnLoadedSavedGameToStrategy()
+//{
+//	UpdateStorage();
+//}
 
 static event OnPostTemplatesCreated()
 {
@@ -116,7 +119,7 @@ static function UpdateStorage()
 	History.CleanupPendingGameState(NewGameState);
 }
 
-static function UpdateStorageForItem(X2DataTemplate ItemTemplate)
+static function UpdateStorageForItem(X2DataTemplate ItemTemplate, optional bool bOnItemConstructionCompleted = false)
 {
 	local XComGameState NewGameState;
 	local XComGameStateHistory History;
@@ -127,7 +130,7 @@ static function UpdateStorageForItem(X2DataTemplate ItemTemplate)
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
 	XComHQ = GetNewXComHQState(NewGameState);
 
-	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
+	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState, bOnItemConstructionCompleted);
 
 	History.AddGameStateToHistory(NewGameState);
 	History.CleanupPendingGameState(NewGameState);
@@ -169,7 +172,7 @@ static function AddPrimaryVariants(XComGameState_HeadquartersXCom XComHQ, XComGa
 	}
 }
 
-static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState_HeadquartersXCom XComHQ, XComGameState NewGameState)
+static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState_HeadquartersXCom XComHQ, XComGameState NewGameState, optional bool bOnItemConstructionCompleted = false)
 {
 	local X2ItemTemplateManager ItemTemplateMgr;
 	local XComGameState_Item NewItemState;
@@ -186,7 +189,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
 		ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
-		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)) && (XComHQ.EverAcquiredInventoryTypes.Find(ItemTemplate.DataName) == INDEX_NONE || (!X2WeaponTemplate(ItemTemplate).bInfiniteItem && X2WeaponTemplate(ItemTemplate).CanBeBuilt)))
+		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)) || bOnItemConstructionCompleted)
 		{
 			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);

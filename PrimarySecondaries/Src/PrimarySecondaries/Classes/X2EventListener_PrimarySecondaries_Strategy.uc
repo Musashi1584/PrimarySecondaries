@@ -27,6 +27,6 @@ static function CHEventListenerTemplate CreateItemConstructionCompletedListenerT
 static function EventListenerReturn OnItemConstructionCompleted(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
 	`LOG(default.class @ GetFuncName() @ XComGameState_Item(EventData).GetMyTemplateName(),, 'PrimarySecondaries');
-	class'X2DownloadableContentInfo_PrimarySecondaries'.static.UpdateStorageForItem(XComGameState_Item(EventData).GetMyTemplate());
+	class'X2DownloadableContentInfo_PrimarySecondaries'.static.UpdateStorageForItem(XComGameState_Item(EventData).GetMyTemplate(), true);
 	return ELR_NoInterrupt;
 }
