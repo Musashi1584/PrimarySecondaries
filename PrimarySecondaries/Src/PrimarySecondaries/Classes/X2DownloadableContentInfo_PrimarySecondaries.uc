@@ -187,7 +187,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
 		ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
-		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
+		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)) && (XComHQ.EverAcquiredInventoryTypes.Find(ItemTemplate.DataName) == INDEX_NONE || (!X2WeaponTemplate(ItemTemplate).bInfiniteItem && X2WeaponTemplate(ItemTemplate).CanBeBuilt)))
 		{
 			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
