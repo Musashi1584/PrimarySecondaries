@@ -546,6 +546,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 {
 	local X2WeaponTemplate WeaponTemplate;
 	local XComGameState_Unit UnitState;
+	local array<string> AnimSetPaths;
 	local string AnimSetPath;
 	local AnimSet Anim;
 
@@ -590,11 +591,25 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 		if (WeaponTemplate.WeaponCat == 'sidearm')
 		{
-			AnimSetPath = "PrimarySecondaries_SwordAndPistol.Anims.AS_AutoPistol";
+			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_AutoPistol");
 		}
 		else if (WeaponTemplate.WeaponCat == 'pistol')
 		{
-			AnimSetPath = "PrimarySecondaries_SwordAndPistol.Anims.AS_Pistol";
+			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Pistol");
+			if (WeaponTemplate.DataName == 'AlienHunterPistol_CV' || WeaponTemplate.DataName == 'AlienHunterPistol_MG')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Shadowkeeper");
+			}
+
+			if (WeaponTemplate.DataName == 'AlienHunterPistol_BM')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Shadowkeeper_BM");
+			}
+
+			if (WeaponTemplate.DataName == 'TLE_Pistol_BM')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_PlasmaPistol");
+			}
 		}
 		else if (WeaponTemplate.WeaponCat == 'sword')
 		{
@@ -605,11 +620,11 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	{
 		if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 		{
-			AnimSetPath = "PrimarySecondaries_ANIM.Anims.AS_Melee";
+			AnimSetPaths.AddItem("PrimarySecondaries_ANIM.Anims.AS_Melee");
 		}
 		else
 		{
-			AnimSetPath = "PrimarySecondaries_ANIM.Anims.AS_KnifeMelee";
+			AnimSetPaths.AddItem("PrimarySecondaries_ANIM.Anims.AS_KnifeMelee");
 		}
 	}
 	else if (IsPrimaryPistolWeaponTemplate(WeaponTemplate) && HasPrimaryPistolEquipped(UnitState))
@@ -618,30 +633,50 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 		if (WeaponTemplate.WeaponCat == 'sidearm')
 		{
-			AnimSetPath = "PrimarySecondaries_AutoPistol.Anims.AS_AutoPistol_Primary";
+			AnimSetPaths.AddItem("PrimarySecondaries_AutoPistol.Anims.AS_AutoPistol_Primary");
 		}
 		else if (WeaponTemplate.WeaponCat == 'pistol')
 		{
-			AnimSetPath = "PrimarySecondaries_Pistol.Anims.AS_Pistol";
+			AnimSetPaths.AddItem("PrimarySecondaries_Pistol.Anims.AS_Pistol");
+
+			if (WeaponTemplate.DataName == 'AlienHunterPistol_CV' || WeaponTemplate.DataName == 'AlienHunterPistol_MG')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_Pistol.Anims.AS_Shadowkeeper");
+			}
+
+			if (WeaponTemplate.DataName == 'AlienHunterPistol_BM')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_Pistol.Anims.AS_Shadowkeeper_BM");
+			}
+
+			if (WeaponTemplate.DataName == 'TLE_Pistol_BM')
+			{
+				AnimSetPaths.AddItem("PrimarySecondaries_Pistol.Anims.AS_PlasmaPistol");
+			}
 		}
 	}
 	else if (IsSecondaryPistolWeaponTemplate(WeaponTemplate) && WeaponTemplate.WeaponCat == 'sidearm')
 	{
 		// Patching the default autopistol template here so other soldiers than templars can use it
-		AnimSetPath = "PrimarySecondaries_AutoPistol.Anims.AS_AutoPistol_Secondary";
+		AnimSetPaths.AddItem("PrimarySecondaries_AutoPistol.Anims.AS_AutoPistol_Secondary");
 	}
 
-	if (AnimSetPath != "")
+	if (AnimSetPaths.Length > 0)
 	{
 		Weapon.CustomUnitPawnAnimsets.Length = 0;
 		Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
-		Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
-		`LOG("----> Adding" @ AnimSetPath @ "to CustomUnitPawnAnimsets of" @ WeaponTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
-		foreach Weapon.CustomUnitPawnAnimsets(Anim)
+		foreach AnimSetPaths(AnimSetPath)
 		{
-			`LOG(Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
+			`LOG("----> Adding" @ AnimSetPath @ "to CustomUnitPawnAnimsets of" @ WeaponTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
+		
+
+		//foreach Weapon.CustomUnitPawnAnimsets(Anim)
+		//{
+		//	`LOG(Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		//}
 	}
 }
 
