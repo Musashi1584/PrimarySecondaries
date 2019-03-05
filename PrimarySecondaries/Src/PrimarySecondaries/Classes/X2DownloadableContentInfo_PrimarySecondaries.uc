@@ -531,6 +531,13 @@ static function AddPrimarySecondaries()
 				// Make sure the templates get added to the bottom if the list
 				ClonedTemplate.Tier -= 1;
 
+				if (WeaponTemplate.BaseItem != '' )
+					ClonedTemplate.BaseItem = name(WeaponTemplate.BaseItem $ "_Primary");
+
+				if (WeaponTemplate.UpgradeItem != '' )
+					ClonedTemplate.UpgradeItem = name(WeaponTemplate.UpgradeItem $ "_Primary");
+				
+
 				ItemTemplateManager.AddItemTemplate(ClonedTemplate, true);
 			}
 
@@ -616,14 +623,20 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		}
 		else if (WeaponTemplate.WeaponCat == 'sword')
 		{
-			
+			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Sword");
 		}
 	}
-	else if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate))
+	else if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
 	{
+		Weapon.DefaultSocket = 'R_Hand';
+		
 		if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 		{
-			AnimSetPaths.AddItem("PrimarySecondaries_ANIM.Anims.AS_Melee");
+			Weapon.WeaponMoveEndTurnLeftFireAnimSequenceName = '';
+			Weapon.WeaponMoveEndTurnLeftFireKillAnimSequenceName = '';
+			Weapon.WeaponMoveEndTurnRightFireAnimSequenceName = '';
+			Weapon.WeaponMoveEndTurnRightFireKillAnimSequenceName = '';
+			AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_Sword");
 		}
 		else
 		{
@@ -690,6 +703,11 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	local AnimSet Anim;
 	local int Index;
 
+	if (UnitState.IsSoldier() || UnitState.IsAdvent())
+	{
+		CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_PrimaryMelee.Anims.AS_Target")));
+	}
+
 	if (!UnitState.IsSoldier())
 	{
 		return;
@@ -715,8 +733,11 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 			else
 			{
 				AnimSetPath = "PrimarySecondaries_Pistol.Anims.AS_Soldier";
-				
 			}
+		}
+		else if (HasPrimaryMeleeEquipped(UnitState))
+		{
+			AnimSetPath = "PrimarySecondaries_PrimaryMelee.Anims.AS_Soldier";
 		}
 		
 
