@@ -36,6 +36,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Config\XComPrimarySecondaries.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Content\PrimarySecondaries_Sockets.upk">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Content\PrimaryPistolsMod.upk">
       <SubType>Content</SubType>
     </Content>
@@ -73,6 +76,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Config\XComGame.ini" />
     <Content Include="Localization\XComGame.int" />
     <Content Include="Src\PrimarySecondaries\Classes\AnimNotify_FireOffHandPistol.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\AnimNotify_Slomo.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\AnimNotify_TriggerHitReaction.uc">

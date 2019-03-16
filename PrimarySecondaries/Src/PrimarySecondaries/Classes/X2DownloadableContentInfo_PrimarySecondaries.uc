@@ -28,8 +28,16 @@ struct ArchetypeReplacement {
 	var() int NumUpgradeSlots;
 };
 
+struct SocketReplacementInfo
+{
+	var name TorsoName;
+	var string SocketMeshString;
+	var bool Female;
+};
+
 var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
+var config array<SocketReplacementInfo> SocketReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
 var config array<name> PistolCategories;
 var config array<name> PatchMeleeCategoriesAnimBlackList;
@@ -552,6 +560,55 @@ static function AddPrimarySecondaries()
 	ItemTemplateManager.LoadAllContent();
 }
 
+static function UpdateWeaponAttachments(out array<WeaponAttachment> Attachments, XComGameState_Item ItemState)
+{
+	local XComGameState_Unit UnitState;
+	local int i;
+	local name NewSocket;
+
+	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
+
+	if(HasDualMeleeEquipped(UnitState))
+	{
+		return;
+	}
+
+	if(IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())))
+	{
+		NewSocket = 'PrimaryMeleeLeftSheath';
+	}
+
+	if (NewSocket != '')
+	{
+		for (i = Attachments.Length; i >= 0; i--)
+		{
+			if (Attachments[i].AttachToPawn && Attachments[i].AttachSocket == 'Sheath')
+			{
+				Attachments[i].AttachSocket = NewSocket;
+				//`LOG(GetFuncName @ UnitState.GetFullName() @ ItemState  @ NewSocket,, 'DualWieldMelee');
+			}
+		}
+	}
+}
+
+static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out array<AbilitySetupData> SetupData, optional XComGameState StartState, optional XComGameState_Player PlayerState, optional bool bMultiplayerDisplay)
+{
+	local int Index;
+
+	// Associate all melee abilities with the primary weapon if dual melee weapons are equipped
+	if (UnitState.IsSoldier() && !HasDualMeleeEquipped(UnitState) && HasPrimaryMeleeEquipped(UnitState))
+	{
+		for(Index = 0; Index <= SetupData.Length; Index++)
+		{
+			if (SetupData[Index].Template.IsMelee() && SetupData[Index].TemplateName != 'DualSlashSecondary')
+			{
+				SetupData[Index].SourceWeaponRef = UnitState.GetPrimaryWeapon().GetReference();
+				`LOG(GetFuncName() @ UnitState.GetFullName() @ "setting" @ SetupData[Index].TemplateName @ "to" @ UnitState.GetPrimaryWeapon().GetMyTemplateName(),, 'PrimarySecondaries');
+			}
+		}
+	}
+}
+
 static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, optional XComGameState_Item ItemState=none)
 {
 	local X2WeaponTemplate WeaponTemplate;
@@ -716,8 +773,8 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
 		// Force Personality_ByTheBook
-		UnitState.kAppearance.iAttitude = 0;
-		UnitState.UpdatePersonalityTemplate();
+		//UnitState.kAppearance.iAttitude = 0;
+		//UnitState.UpdatePersonalityTemplate();
 		//AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("HQ_ANIM.Anims.AS_Armory_Unarmed")), 3);
 		//AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
 		if (HasMeleeAndPistolEquipped(UnitState))
@@ -818,6 +875,48 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 			`LOG(GetFuncName() @ "Overriding" @ Socket.SocketName @ "socket" @ `showvar(RelativeLocation) @ `showvar(RelativeRotation),, 'PrimarySecondaries');
 		}
 	}
+}
+
+static function string DLCAppendSockets(XComUnitPawn Pawn)
+{
+	local SocketReplacementInfo SocketReplacement;
+	local name TorsoName;
+	local bool bIsFemale;
+	local string DefaultString, ReturnString;
+	local XComHumanPawn HumanPawn;
+
+	//`LOG("DLCAppendSockets" @ Pawn,, 'DualWieldMelee');
+
+	HumanPawn = XComHumanPawn(Pawn);
+	if (HumanPawn == none) { return ""; }
+
+	TorsoName = HumanPawn.m_kAppearance.nmTorso;
+	bIsFemale = HumanPawn.m_kAppearance.iGender == eGender_Female;
+
+	//`LOG("DLCAppendSockets: Torso= " $ TorsoName $ ", Female= " $ string(bIsFemale),, 'DualWieldMelee');
+
+	foreach default.SocketReplacements(SocketReplacement)
+	{
+		if (TorsoName != 'None' && TorsoName == SocketReplacement.TorsoName && bIsFemale == SocketReplacement.Female)
+		{
+			ReturnString = SocketReplacement.SocketMeshString;
+			break;
+		}
+		else
+		{
+			if (SocketReplacement.TorsoName == 'Default' && SocketReplacement.Female == bIsFemale)
+			{
+				DefaultString = SocketReplacement.SocketMeshString;
+			}
+		}
+	}
+	if (ReturnString == "")
+	{
+		// did not find, so use default
+		ReturnString = DefaultString;
+	}
+
+	return ReturnString;
 }
 
 static function bool HasPrimaryMeleeOrPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
