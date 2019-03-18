@@ -84,10 +84,16 @@ static event OnLoadedSavedGame()
 	UpdateStorage();
 }
 
-//static event OnLoadedSavedGameToStrategy()
-//{
-//	UpdateStorage();
-//}
+static event OnLoadedSavedGameToStrategy()
+{
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	UpdateStorage();
+}
+
+exec function UpdatePrimarySecondaries() {
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	UpdateStorage();
+}
 
 static event OnPostTemplatesCreated()
 {
@@ -176,6 +182,8 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 {
 	local X2ItemTemplateManager ItemTemplateMgr;
 	local XComGameState_Item NewItemState;
+	local X2DataTemplate ItemTemplatePrimary;
+	local int QuantitySecondary, QuantityPrimary, QuantityToAdd;
 
 	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 
@@ -184,27 +192,37 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 		return;
 	}
 
-	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	ItemTemplatePrimary = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
 
+	QuantitySecondary = XComHQ.GetNumItemInInventory(ItemTemplate.DataName);
+	QuantityPrimary = XComHQ.GetNumItemInInventory(ItemTemplatePrimary.DataName);
+
+	if (QuantityPrimary < QuantitySecondary)
+	{
+		QuantityToAdd = QuantitySecondary - QuantityPrimary;
+	}
+
+	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName @ "QuantitySecondary:" @ QuantitySecondary @ "QuantityPrimary:" @ QuantityPrimary @ "QuantityToAdd:" @ QuantityToAdd, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
-		ItemTemplate = ItemTemplateMgr.FindItemTemplate(name(ItemTemplate.DataName $ "_Primary"));
-		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplate)) || bOnItemConstructionCompleted)
+
+		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplatePrimary)) || QuantityToAdd > 0 || bOnItemConstructionCompleted)
 		{
-			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-			NewItemState = X2ItemTemplate(ItemTemplate).CreateInstanceFromTemplate(NewGameState);
-			NewItemState.Quantity = 1;
-			//XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID));
+
+			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplatePrimary.DataName @ "("  $ QuantityToAdd $ ")", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			NewItemState = X2ItemTemplate(ItemTemplatePrimary).CreateInstanceFromTemplate(NewGameState);
+			NewItemState.Quantity = QuantityToAdd;
 			XComHQ.AddItemToHQInventory(NewItemState);
 		}
 		else
 		{
-			`LOG(GetFuncName() @ "Primary variant of" @ ItemTemplate.DataName @ "is already present", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "<-> Primary variant of" @ ItemTemplate.DataName @ "is already present", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 	}
 	else
 	{
-		`LOG(GetFuncName() @ ItemTemplate.DataName @ "is not in inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		`LOG(GetFuncName() @ "<--" @ ItemTemplate.DataName @ "is not in inventory", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -490,6 +508,7 @@ static function AddPrimarySecondaries()
 				ClonedTemplate.InfiniteAmmo = default.bPrimaryPistolsInfiniteAmmo;
 				
 				`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				ClonedTemplate.Tier -= 5;
 			}
 
 			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
@@ -503,6 +522,9 @@ static function AddPrimarySecondaries()
 				}
 
 				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
+
+				// Make sure the templates get added to the bottom if the list
+				ClonedTemplate.Tier -= 10;
 			}
 
 			if (ClonedTemplate != none)
@@ -528,8 +550,12 @@ static function AddPrimarySecondaries()
 					}
 				}
 
-				// Make sure the templates get added to the bottom if the list
-				ClonedTemplate.Tier -= 1;
+				if (WeaponTemplate.BaseItem != '' )
+					ClonedTemplate.BaseItem = name(WeaponTemplate.BaseItem $ "_Primary");
+				
+				if (WeaponTemplate.UpgradeItem != '' )
+					ClonedTemplate.UpgradeItem = name(WeaponTemplate.UpgradeItem $ "_Primary");
+
 
 				ItemTemplateManager.AddItemTemplate(ClonedTemplate, true);
 			}
@@ -544,6 +570,47 @@ static function AddPrimarySecondaries()
 
 	ItemTemplateManager.LoadAllContent();
 }
+
+static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out array<AbilitySetupData> SetupData, optional XComGameState StartState, optional XComGameState_Player PlayerState, optional bool bMultiplayerDisplay)
+{
+	local XComGameState_Item SecondaryItemState;
+	local array<SoldierClassAbilityType> EarnedSoldierAbilities;
+	local int Index;
+	
+	// Associate all melee abilities with the primary weapon if primary melee weapons are equipped
+	if (UnitState.IsSoldier() && !HasDualMeleeEquipped(UnitState) && HasPrimaryMeleeEquipped(UnitState))
+	{
+		for(Index = 0; Index <= SetupData.Length; Index++)
+		{
+			if (SetupData[Index].Template.IsMelee() && SetupData[Index].TemplateName != 'DualSlashSecondary')
+			{
+				SetupData[Index].SourceWeaponRef = UnitState.GetPrimaryWeapon().GetReference();
+				`LOG(GetFuncName() @ UnitState.GetFullName() @ "setting" @ SetupData[Index].TemplateName @ "to" @ UnitState.GetPrimaryWeapon().GetMyTemplateName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			}
+		}
+	}
+
+	// Associate all pistol abilities with the primary weapon if primary pistol weapons are equipped
+	//if (UnitState.IsSoldier() && !HasDualPistolEquipped(UnitState) && HasPrimaryPistol(UnitState))
+	//{
+	//	EarnedSoldierAbilities = UnitState.GetEarnedSoldierAbilities();
+	//	SecondaryItemState = UnitState.GetSecondaryWeapon();
+	//	for(Index = 0; Index <= SetupData.Length; Index++)
+	//	{
+	//		if (!SetupData[Index].Template.IsMelee() &&
+	//			!SetupData[Index].Template.IsPassive &&
+	//			EarnedSoldierAbilities.Find('AbilityName', SetupData[Index].TemplateName) != INDEX_NONE)
+	//		{
+	//			if (SecondaryItemState.ObjectID == SetupData[Index].SourceWeaponRef.ObjectID)
+	//			{
+	//				SetupData[Index].SourceWeaponRef = UnitState.GetPrimaryWeapon().GetReference();
+	//				`LOG(GetFuncName() @ UnitState.GetFullName() @ "setting" @ SetupData[Index].TemplateName @ "to" @ UnitState.GetPrimaryWeapon().GetMyTemplateName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLo, 'PrimarySecondaries');
+	//			}
+	//		}
+	//	}
+	//}
+}
+
 
 static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, optional XComGameState_Item ItemState=none)
 {
