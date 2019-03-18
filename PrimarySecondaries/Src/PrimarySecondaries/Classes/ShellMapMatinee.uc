@@ -1,7 +1,8 @@
 class ShellMapMatinee extends Object;
 
 var string AnimSequencePrefix;
-var string PatchAnimsetPath;
+var string PatchAnimsetPathPrimaryMelee;
+var string PatchAnimsetPathPrimaryPistol;
 
 static function PatchAllLoadedMatinees(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
 {
@@ -39,13 +40,22 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 	local AnimSet PatchAnimset;
 	local AnimSequence Sequence;
 
-	PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPath));
+	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitState, SearchState))
+	{
+		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee));
+	}
+
+	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitState, SearchState))
+	{
+		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+	}
 
 	foreach PatchAnimset.Sequences(Sequence)
 	{
 		PatchSequenceNames.AddItem(name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")));
 		`LOG("Adding sequence " @ name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 	}
+
 
 	Data = InterpData(SeqInterp.VariableLinks[0].LinkedVariables[0]);
 	
@@ -93,5 +103,6 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 defaultproperties
 {
 	AnimSequencePrefix="PS_"
-	PatchAnimsetPath="PrimarySecondaries_ANIM.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_PrimaryPistol.Anims.AS_ShellScreen"
 }

@@ -9,7 +9,8 @@ struct native UnitToMatineeGroupMapping
 var int LatestPatchedStreamingMaps;
 
 var string AnimSequencePrefix;
-var string PatchAnimsetPath;
+var string PatchAnimsetPathPrimaryMelee;
+var string PatchAnimsetPathPrimaryPistol;
 
 // approach: every time the number of streaming maps changes, we re-check the Matinees
 // since we the character added a new pod reveal action
@@ -62,14 +63,6 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp)
 	local AnimSet PatchAnimset;
 	local AnimSequence Sequence;
 
-	PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPath));
-
-	foreach PatchAnimset.Sequences(Sequence)
-	{
-		PatchSequenceNames.AddItem(name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")));
-		`LOG("Adding" @ name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
-	}
-
 	UnitMapping = GetUnitMapping();
 	Data = InterpData(SeqInterp.VariableLinks[0].LinkedVariables[0]);
 	
@@ -83,6 +76,24 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp)
 			{
 				`LOG(UnitMapping[UnitMapIndex].GroupName @ UnitMapping[UnitMapIndex].Unit.GetFullName() @ "!HasPrimaryMeleeOrPistolEquipped, skipping patch", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 				continue;
+			}
+
+			if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitMapping[UnitMapIndex].Unit))
+			{
+				PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee));
+			}
+
+			if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitMapping[UnitMapIndex].Unit))
+			{
+				PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+			}
+
+			PatchSequenceNames.Length = 0;
+
+			foreach PatchAnimset.Sequences(Sequence)
+			{
+				PatchSequenceNames.AddItem(name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")));
+				`LOG("Adding" @ name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 			}
 
 			Group.GroupAnimSets.AddItem(PatchAnimset);
@@ -155,5 +166,6 @@ static function array<UnitToMatineeGroupMapping> GetUnitMapping()
 defaultproperties
 {
 	AnimSequencePrefix="PS_"
-	PatchAnimsetPath="PrimarySecondaries_ANIM.Anims.AS_Soldier_Unarmed"
+	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_Skyranger"
+	PatchAnimsetPathPrimaryPisto="PrimarySecondaries_PrimaryPistol.Anims.AS_Skyranger"
 }
