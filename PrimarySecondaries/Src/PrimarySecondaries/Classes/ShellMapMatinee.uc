@@ -43,11 +43,13 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitState, SearchState))
 	{
 		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee));
+		`LOG(UnitState.GetFirstName @ "has primary melee eqipped. Adding" @ default.PatchAnimsetPathPrimaryMelee, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 	}
 
 	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitState, SearchState))
 	{
 		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+		`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 	}
 
 	foreach PatchAnimset.Sequences(Sequence)
@@ -104,5 +106,5 @@ defaultproperties
 {
 	AnimSequencePrefix="PS_"
 	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_ShellScreen"
-	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_PrimaryPistol.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_Pistol.Anims.AS_ShellScreen"
 }
