@@ -117,12 +117,20 @@ static function UpdateStorage()
 	History = `XCOMHISTORY;
 
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
-	XComHQ = GetNewXComHQState(NewGameState);
+
+	XComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+	XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
 
 	AddPrimaryVariants(XComHQ, NewGameState);
 
-	History.AddGameStateToHistory(NewGameState);
-	History.CleanupPendingGameState(NewGameState);
+	if (NewGameState.GetNumGameStateObjects() > 0)
+	{
+		History.AddGameStateToHistory(NewGameState);
+	}
+	else
+	{
+		History.CleanupPendingGameState(NewGameState);
+	}
 }
 
 static function UpdateStorageForItem(X2DataTemplate ItemTemplate, optional bool bOnItemConstructionCompleted = false)
@@ -138,11 +146,17 @@ static function UpdateStorageForItem(X2DataTemplate ItemTemplate, optional bool 
 
 	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState, bOnItemConstructionCompleted);
 
-	History.AddGameStateToHistory(NewGameState);
-	History.CleanupPendingGameState(NewGameState);
+	if (NewGameState.GetNumGameStateObjects() > 0)
+	{
+		History.AddGameStateToHistory(NewGameState);
+	}
+	else
+	{
+		History.CleanupPendingGameState(NewGameState);
+	}
 }
 
-static function AddPrimaryVariants(XComGameState_HeadquartersXCom XComHQ, XComGameState NewGameState)
+static function AddPrimaryVariants(out XComGameState_HeadquartersXCom XComHQ, out XComGameState NewGameState)
 {
 	local X2ItemTemplateManager ItemTemplateMgr;
 	local array<X2ItemTemplate> ItemTemplates;
