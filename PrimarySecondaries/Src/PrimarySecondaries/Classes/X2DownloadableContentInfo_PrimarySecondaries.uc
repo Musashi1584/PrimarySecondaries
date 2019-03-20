@@ -90,6 +90,12 @@ static event OnLoadedSavedGameToStrategy()
 	UpdateStorage();
 }
 
+static event OnExitPostMissionSequence()
+{
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	UpdateStorage();
+}
+
 exec function UpdatePrimarySecondaries() {
 	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	UpdateStorage();
@@ -116,7 +122,7 @@ static function UpdateStorage()
 
 	History = `XCOMHISTORY;
 
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating HQ Storage to add primary secondaries variants");
 
 	XComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
 	XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
@@ -141,7 +147,7 @@ static function UpdateStorageForItem(X2DataTemplate ItemTemplate, optional bool 
 
 	History = `XCOMHISTORY;
 
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState(" Updating HQ Storage to add primary pistol variants");
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating HQ Storage to add primary secondaries variants");
 	XComHQ = GetNewXComHQState(NewGameState);
 
 	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState, bOnItemConstructionCompleted);
