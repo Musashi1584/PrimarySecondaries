@@ -28,16 +28,8 @@ struct ArchetypeReplacement {
 	var() int NumUpgradeSlots;
 };
 
-struct SocketReplacementInfo
-{
-	var name TorsoName;
-	var string SocketMeshString;
-	var bool Female;
-};
-
 var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
-var config array<SocketReplacementInfo> SocketReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
 var config array<name> PistolCategories;
 var config array<name> PatchMeleeCategoriesAnimBlackList;
@@ -119,7 +111,6 @@ static event OnPostTemplatesCreated()
 	{
 		ReplacePistolArchetypes();
 	}
-	//AddEqippDelegates();
 }
 
 static function UpdateStorage()
@@ -611,6 +602,8 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
 	local XComGameState_Item SecondaryItemState;
 	local array<SoldierClassAbilityType> EarnedSoldierAbilities;
 	local int Index;
+
+	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	
 	// Associate all melee abilities with the primary weapon if primary melee weapons are equipped
 	if (UnitState.IsSoldier() && !HasDualMeleeEquipped(UnitState) && HasPrimaryMeleeEquipped(UnitState))
@@ -685,6 +678,9 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	local array<string> AnimSetPaths;
 	local string AnimSetPath;
 	local AnimSet Anim;
+	local bool bResetAnimsets;
+
+	bResetAnimsets = true;
 
 	if (ItemState == none)
 	{
@@ -798,16 +794,28 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 			}
 		}
 	}
+	else if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryPistolEquipped(UnitState))
+	{
+		AnimSetPaths.AddItem("PrimarySecondaries_Pistol.Anims.AS_SecondarySword");
+	}
 	else if (IsSecondaryPistolWeaponTemplate(WeaponTemplate) && WeaponTemplate.WeaponCat == 'sidearm')
 	{
 		// Patching the default autopistol template here so other soldiers than templars can use it
 		AnimSetPaths.AddItem("PrimarySecondaries_AutoPistol.Anims.AS_AutoPistol_Secondary");
 	}
+	if (IsSecondaryPistolWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
+	{
+		bResetAnimsets = false;
+		AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_SecondaryPistol");
+	}
 
 	if (AnimSetPaths.Length > 0)
 	{
-		Weapon.CustomUnitPawnAnimsets.Length = 0;
-		Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+		if (bResetAnimsets)
+		{
+			Weapon.CustomUnitPawnAnimsets.Length = 0;
+			Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
+		}
 
 		foreach AnimSetPaths(AnimSetPath)
 		{
@@ -823,6 +831,21 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	}
 }
 
+static function UnitPawnPostInitAnimTree(XComGameState_Unit UnitState, XComUnitPawnNativeBase Pawn, SkeletalMeshComponent SkelComp)
+{
+	local AnimTree AnimTreeTemplate;
+
+	if (!UnitState.IsSoldier())
+	{
+		return;
+	}
+
+	if (HasPrimaryPistolEquipped(UnitState))
+	{
+		AnimTreeTemplate = AnimTree(`CONTENT.RequestGameArchetype("PrimarySecondaries_AT.AT_Soldier", class'AnimTree'));
+		SkelComp.SetAnimTreeTemplate(AnimTreeTemplate);
+	}
+}
 
 static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameState_Unit UnitState, XComUnitPawn Pawn)
 {
@@ -866,27 +889,46 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 
 		if (AnimSetPath != "")
 		{
-			CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
+			//CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
+
+			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)), 3);
+
 			`LOG(GetFuncName() @ "Adding" @ AnimSetPath @ "to" @ UnitState.GetFullName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 		
-		//Index = 0;
-		//foreach Pawn.Mesh.AnimSets(Anim)
-		//{
-		//	`LOG(GetFuncName() @ "Pawn.Mesh.AnimSets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-		//	Index++;
-		//}
+		Index = 0;
+		foreach Pawn.Mesh.AnimSets(Anim)
+		{
+			`LOG(GetFuncName() @ "Pawn.Mesh.AnimSets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			Index++;
+		}
 
-		//Index = 0;
-		//foreach Pawn.DefaultUnitPawnAnimsets(Anim)
-		//{
-		//	`LOG(GetFuncName() @ "DefaultUnitPawnAnimsets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-		//	Index++;
-		//}
+		Index = 0;
+		foreach Pawn.DefaultUnitPawnAnimsets(Anim)
+		{
+			`LOG(GetFuncName() @ "DefaultUnitPawnAnimsets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			Index++;
+		}
 
-		//`LOG(GetFuncName() @ "--------------------------------------------------------------", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		`LOG(GetFuncName() @ "--------------------------------------------------------------", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
 		//Pawn.Mesh.UpdateAnimations();
+	}
+}
+
+static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int Index = -1)
+{
+	if (Pawn.Mesh.AnimSets.Find(AnimSetToAdd) == INDEX_NONE)
+	{
+		if (Index != INDEX_NONE)
+		{
+			Pawn.Mesh.AnimSets.InsertItem(Index, AnimSetToAdd);
+		}
+		else
+		{
+			Pawn.Mesh.AnimSets.AddItem(AnimSetToAdd);
+		}
+		`LOG(GetFuncName() @ "adding" @ AnimSetToAdd @ "at Index" @ Index, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	}
 }
 
@@ -945,44 +987,29 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 
 static function string DLCAppendSockets(XComUnitPawn Pawn)
 {
-	local SocketReplacementInfo SocketReplacement;
-	local name TorsoName;
-	local bool bIsFemale;
-	local string DefaultString, ReturnString;
 	local XComHumanPawn HumanPawn;
+	local XComGameState_Unit UnitState;
 
 	//`LOG("DLCAppendSockets" @ Pawn,, 'DualWieldMelee');
 
 	HumanPawn = XComHumanPawn(Pawn);
 	if (HumanPawn == none) { return ""; }
 
-	TorsoName = HumanPawn.m_kAppearance.nmTorso;
-	bIsFemale = HumanPawn.m_kAppearance.iGender == eGender_Female;
+	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(HumanPawn.ObjectID));
 
-	//`LOG("DLCAppendSockets: Torso= " $ TorsoName $ ", Female= " $ string(bIsFemale),, 'DualWieldMelee');
+	if (UnitState == none || !UnitState.IsSoldier()) { return ""; }
 
-	foreach default.SocketReplacements(SocketReplacement)
+	if (HasPrimaryMeleeEquipped(UnitState))
 	{
-		if (TorsoName != 'None' && TorsoName == SocketReplacement.TorsoName && bIsFemale == SocketReplacement.Female)
-		{
-			ReturnString = SocketReplacement.SocketMeshString;
-			break;
-		}
-		else
-		{
-			if (SocketReplacement.TorsoName == 'Default' && SocketReplacement.Female == bIsFemale)
-			{
-				DefaultString = SocketReplacement.SocketMeshString;
-			}
-		}
-	}
-	if (ReturnString == "")
-	{
-		// did not find, so use default
-		ReturnString = DefaultString;
+		return "PrimarySecondaries_Sockets.Meshes.PrimaryMelee_SocketsOverride";
 	}
 
-	return ReturnString;
+	if (HasPrimaryPistolEquipped(UnitState))
+	{
+		return "PrimarySecondaries_Sockets.Meshes.PrimaryPistol_SocketsOverride";
+	}
+
+	return "";
 }
 
 static function bool HasPrimaryMeleeOrPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)

@@ -36,6 +36,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Config\XComPrimarySecondaries.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Content\PrimarySecondaries_AT.upk">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Content\PrimarySecondaries_Sockets.upk">
       <SubType>Content</SubType>
     </Content>
@@ -63,7 +66,7 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimarySecondaries_SwordAndPistol.upk">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk">
+    <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk.BAK">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Notes.txt">

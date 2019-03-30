@@ -3,6 +3,7 @@ class ShellMapMatinee extends Object;
 var string AnimSequencePrefix;
 var string PatchAnimsetPathPrimaryMelee;
 var string PatchAnimsetPathPrimaryPistol;
+var string PatchAnimsetPathPrimaryAutoPistol;
 
 static function PatchAllLoadedMatinees(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
 {
@@ -48,8 +49,16 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 
 	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitState, SearchState))
 	{
-		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
-		`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+		if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'pistol')
+		{
+			`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+		}
+		else if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'sidearm')
+		{
+			`LOG(UnitState.GetFirstName @ "has primary autopistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol));
+		}
 	}
 
 	foreach PatchAnimset.Sequences(Sequence)
@@ -107,4 +116,5 @@ defaultproperties
 	AnimSequencePrefix="PS_"
 	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_ShellScreen"
 	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_Pistol.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryAutoPistol="PrimarySecondaries_AutoPistol.Anims.AS_ShellScreen"
 }

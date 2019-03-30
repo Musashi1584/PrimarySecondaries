@@ -11,6 +11,7 @@ var int LatestPatchedStreamingMaps;
 var string AnimSequencePrefix;
 var string PatchAnimsetPathPrimaryMelee;
 var string PatchAnimsetPathPrimaryPistol;
+var string PatchAnimsetPathPrimaryAutoPistol;
 
 // approach: every time the number of streaming maps changes, we re-check the Matinees
 // since we the character added a new pod reveal action
@@ -80,12 +81,22 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp)
 
 			if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitMapping[UnitMapIndex].Unit))
 			{
+				`LOG(UnitMapping[UnitMapIndex].GroupName @ UnitMapping[UnitMapIndex].Unit.GetFullName() @ "!HasPrimaryMeleeEquipped", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 				PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee));
 			}
 
 			if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitMapping[UnitMapIndex].Unit))
 			{
-				PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+				if (X2WeaponTemplate(UnitMapping[UnitMapIndex].Unit.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate()).WeaponCat == 'pistol')
+				{
+					`LOG(UnitMapping[UnitMapIndex].GroupName @ UnitMapping[UnitMapIndex].Unit.GetFullName() @ "HasPrimaryPistolEquipped", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+					PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+				}
+				else if (X2WeaponTemplate(UnitMapping[UnitMapIndex].Unit.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate()).WeaponCat == 'sidearm')
+				{
+					`LOG(UnitMapping[UnitMapIndex].GroupName @ UnitMapping[UnitMapIndex].Unit.GetFullName() @ "HasPrimaryAutoPistolEquipped", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+					PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol));
+				}
 			}
 
 			PatchSequenceNames.Length = 0;
@@ -167,5 +178,6 @@ defaultproperties
 {
 	AnimSequencePrefix="PS_"
 	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_Skyranger"
-	PatchAnimsetPathPrimaryPisto="PrimarySecondaries_PrimaryPistol.Anims.AS_Skyranger"
+	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_Pistol.Anims.AS_Skyranger"
+	PatchAnimsetPathPrimaryAutoPistol="PrimarySecondaries_AutoPistol.Anims.AS_Skyranger"
 }
