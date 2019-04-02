@@ -10,7 +10,6 @@ static function array<X2DataTemplate> CreateTemplates()
 
 	Templates.AddItem(QuickDrawPrimary());
 	Templates.AddItem(PrimaryPistolsBonus('PrimaryPistolsBonus', default.PISTOL_MOVEMENT_BONUS, default.PISTOL_DETECTIONRADIUS_MODIFER));
-	//Templates.AddItem(PrimaryAnimSet());
 
 	return Templates;
 }
@@ -58,35 +57,6 @@ static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bon
 	Template.AbilityTargetConditions.AddItem(new class'PrimarySecondaries.X2Condition_NotDualPistols');
 
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	
-	return Template;
-}
-
-static function X2AbilityTemplate PrimaryAnimSet()
-{
-	local X2AbilityTemplate                 Template;	
-	local X2Effect_AdditionalAnimSets		AnimSets;
-
-	`CREATE_X2ABILITY_TEMPLATE(Template, 'PrimaryAnimSet');
-	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_item_nanofibervest";
-
-	Template.AbilitySourceName = 'eAbilitySource_Item';
-	Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
-	Template.Hostility = eHostility_Neutral;
-	Template.bDisplayInUITacticalText = false;
-	
-	Template.AbilityToHitCalc = default.DeadEye;
-	Template.AbilityTargetStyle = default.SelfTarget;
-	Template.AbilityTriggers.AddItem(default.UnitPostBeginPlayTrigger);
-
-	AnimSets = new class'X2Effect_AdditionalAnimSets';
-	AnimSets.AddAnimSetWithPath("PrimarySecondaries_ANIM.Anims.AS_Primary");
-	AnimSets.BuildPersistentEffect(1, true, false, false);
-	Template.AddTargetEffect(AnimSets);
-	
-	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;
-	Template.bSkipFireAction = true;
 	
 	return Template;
 }

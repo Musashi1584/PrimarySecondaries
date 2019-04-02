@@ -514,7 +514,6 @@ static function AddPrimarySecondaries()
 					ClonedTemplate.Abilities.AddItem('PistolStandardShot');
 				}
 				ClonedTemplate.Abilities.AddItem('PrimaryPistolsBonus');
-				//ClonedTemplate.Abilities.AddItem('PrimaryAnimSet');
 
 				if (ClonedTemplate.WeaponCat == 'sawedoffshotgun')
 				{
