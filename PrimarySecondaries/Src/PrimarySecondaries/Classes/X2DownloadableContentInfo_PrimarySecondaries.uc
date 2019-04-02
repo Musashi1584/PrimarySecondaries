@@ -39,6 +39,7 @@ var config int PRIMARY_PISTOLS_DAMAGE_MODIFER;
 var config bool bPrimaryPistolsInfiniteAmmo;
 var config bool bUseVisualPistolUpgrades;
 var config bool bLog;
+var config bool bLogAnimations;
 
 
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
@@ -865,11 +866,6 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
-		//if (HasMeleeAndPistolEquipped(UnitState))
-		//{
-		//	AnimSetPath = "PrimarySecondaries_SwordAndPistol.Anims.AS_Soldier";
-		//}
-		//else
 		if (HasPrimaryPistolEquipped(UnitState))
 		{
 			if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate()).WeaponCat == 'sidearm')
@@ -893,24 +889,24 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 
 			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)), 3);
 
-			`LOG(GetFuncName() @ "Adding" @ AnimSetPath @ "to" @ UnitState.GetFullName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "Adding" @ AnimSetPath @ "to" @ UnitState.GetFullName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 		}
 		
 		Index = 0;
 		foreach Pawn.Mesh.AnimSets(Anim)
 		{
-			`LOG(GetFuncName() @ "Pawn.Mesh.AnimSets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "Pawn.Mesh.AnimSets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 			Index++;
 		}
 
 		Index = 0;
 		foreach Pawn.DefaultUnitPawnAnimsets(Anim)
 		{
-			`LOG(GetFuncName() @ "DefaultUnitPawnAnimsets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "DefaultUnitPawnAnimsets" @ Index @ Pathname(Anim), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 			Index++;
 		}
 
-		`LOG(GetFuncName() @ "--------------------------------------------------------------", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		`LOG(GetFuncName() @ "--------------------------------------------------------------", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 
 		//Pawn.Mesh.UpdateAnimations();
 	}
@@ -928,7 +924,7 @@ static function AddAnimSet(XComUnitPawn Pawn, AnimSet AnimSetToAdd, optional int
 		{
 			Pawn.Mesh.AnimSets.AddItem(AnimSetToAdd);
 		}
-		`LOG(GetFuncName() @ "adding" @ AnimSetToAdd @ "at Index" @ Index, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		`LOG(GetFuncName() @ "adding" @ AnimSetToAdd @ "at Index" @ Index, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 	}
 }
 
