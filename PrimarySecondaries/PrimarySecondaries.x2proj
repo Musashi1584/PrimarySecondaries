@@ -39,9 +39,6 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimarySecondaries_AT.upk">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Content\PrimarySecondaries_Sockets.upk">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Content\PrimaryPistolsMod.upk">
       <SubType>Content</SubType>
     </Content>
@@ -49,9 +46,6 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
       <SubType>Content</SubType>
     </Content>
     <Content Include="Content\PrimarySecondaries_ANIM.upk">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Content\PrimarySecondaries_Armory.upk">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Content\PrimarySecondaries_AutoPistol.upk">
@@ -63,10 +57,10 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimarySecondaries_PrimaryMelee.upk">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Content\PrimarySecondaries_SwordAndPistol.upk">
+    <Content Include="Content\PrimarySecondaries_Sockets.upk">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk.BAK">
+    <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Notes.txt">

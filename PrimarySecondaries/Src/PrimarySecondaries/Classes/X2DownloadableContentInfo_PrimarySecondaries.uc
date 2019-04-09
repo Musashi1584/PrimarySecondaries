@@ -530,7 +530,7 @@ static function AddPrimarySecondaries()
 				ClonedTemplate.Tier -= 5;
 			}
 
-			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
+			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate) && InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 			{
 				ClonedTemplate = new class'X2WeaponTemplate' (WeaponTemplate);
 				ClonedTemplate.SetTemplateName(name(TemplateName $ "_Primary"));
@@ -710,45 +710,6 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 	`LOG(GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
-	//if (HasMeleeAndPistolEquipped(UnitState))
-	//{
-	//	if (IsPrimaryPistolWeaponTemplate(WeaponTemplate) || IsSecondaryPistolWeaponTemplate(WeaponTemplate))
-	//	{
-	//		Weapon.DefaultSocket = 'R_Hand';
-	//	}
-	//	if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) || IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
-	//	{
-	//		Weapon.DefaultSocket = 'L_Hand';
-	//	}
-	//
-	//	if (WeaponTemplate.WeaponCat == 'sidearm')
-	//	{
-	//		AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_AutoPistol");
-	//	}
-	//	else if (WeaponTemplate.WeaponCat == 'pistol')
-	//	{
-	//		AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Pistol");
-	//		if (WeaponTemplate.DataName == 'AlienHunterPistol_CV' || WeaponTemplate.DataName == 'AlienHunterPistol_MG')
-	//		{
-	//			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Shadowkeeper");
-	//		}
-	//
-	//		if (WeaponTemplate.DataName == 'AlienHunterPistol_BM')
-	//		{
-	//			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Shadowkeeper_BM");
-	//		}
-	//
-	//		if (WeaponTemplate.DataName == 'TLE_Pistol_BM')
-	//		{
-	//			AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_PlasmaPistol");
-	//		}
-	//	}
-	//	else if (WeaponTemplate.WeaponCat == 'sword')
-	//	{
-	//		AnimSetPaths.AddItem("PrimarySecondaries_SwordAndPistol.Anims.AS_Sword");
-	//	}
-	//}
-	//else 
 	if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
 	{
 		Weapon.DefaultSocket = 'R_Hand';
@@ -835,6 +796,9 @@ static function UnitPawnPostInitAnimTree(XComGameState_Unit UnitState, XComUnitP
 {
 	local AnimTree AnimTreeTemplate;
 
+	// @TODO Enable after next HL release
+	return;
+
 	if (!UnitState.IsSoldier())
 	{
 		return;
@@ -870,15 +834,18 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 			if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate()).WeaponCat == 'sidearm')
 			{
 				AnimSetPath = "PrimarySecondaries_AutoPistol.Anims.AS_Soldier";
+				CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_AutoPistol.Anims.AS_Armory")));
 			}
 			else
 			{
 				AnimSetPath = "PrimarySecondaries_Pistol.Anims.AS_Soldier";
+				CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Pistol.Anims.AS_Armory")));
 			}
 		}
 		else if (HasPrimaryMeleeEquipped(UnitState))
 		{
 			AnimSetPath = "PrimarySecondaries_PrimaryMelee.Anims.AS_Soldier";
+			CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_PrimaryMelee.Anims.AS_Armory")));
 		}
 		
 
@@ -955,7 +922,7 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 			Socket.RelativeRotation = RelativeRotation;
 			NewSockets.AddItem(Socket);
 
-			`LOG(GetFuncName() @ "Overriding" @ Socket.SocketName @ "socket" @ `showvar(RelativeLocation) @ `showvar(RelativeRotation),, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "Overriding" @ Socket.SocketName @ "socket" @ `showvar(RelativeLocation) @ `showvar(RelativeRotation), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 
 		if (Template.WeaponCat == 'sidearm')
@@ -975,7 +942,7 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 			Socket.RelativeRotation = RelativeRotation;
 			NewSockets.AddItem(Socket);
 
-			`LOG(GetFuncName() @ "Overriding" @ Socket.SocketName @ "socket" @ `showvar(RelativeLocation) @ `showvar(RelativeRotation),, 'PrimarySecondaries');
+			`LOG(GetFuncName() @ "Overriding" @ Socket.SocketName @ "socket" @ `showvar(RelativeLocation) @ `showvar(RelativeRotation), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 		}
 	}
 }
