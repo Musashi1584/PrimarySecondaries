@@ -1,7 +1,9 @@
 class ShellMapMatinee extends Object;
 
 var string AnimSequencePrefix;
-var string PatchAnimsetPath;
+var string PatchAnimsetPathPrimaryMelee;
+var string PatchAnimsetPathPrimaryPistol;
+var string PatchAnimsetPathPrimaryAutoPistol;
 
 static function PatchAllLoadedMatinees(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
 {
@@ -38,14 +40,39 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 	local array<name> PatchSequenceNames;
 	local AnimSet PatchAnimset;
 	local AnimSequence Sequence;
+	local string FemaleSuffix;
 
-	PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPath));
+	If (UnitState.kAppearance.iGender == eGender_Female)
+	{
+		FemaleSuffix = "_F";
+	}
+
+	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitState, SearchState))
+	{
+		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee $ FemaleSuffix));
+		`LOG(UnitState.GetFirstName @ "has primary melee eqipped. Adding" @ default.PatchAnimsetPathPrimaryMelee $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+	}
+
+	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitState, SearchState))
+	{
+		if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'pistol')
+		{
+			`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix));
+		}
+		else if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'sidearm')
+		{
+			`LOG(UnitState.GetFirstName @ "has primary autopistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol $ FemaleSuffix));
+		}
+	}
 
 	foreach PatchAnimset.Sequences(Sequence)
 	{
 		PatchSequenceNames.AddItem(name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")));
 		`LOG("Adding sequence " @ name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 	}
+
 
 	Data = InterpData(SeqInterp.VariableLinks[0].LinkedVariables[0]);
 	
@@ -93,5 +120,7 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 defaultproperties
 {
 	AnimSequencePrefix="PS_"
-	PatchAnimsetPath="PrimarySecondaries_ANIM.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryMelee="PrimarySecondaries_PrimaryMelee.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryPistol="PrimarySecondaries_Pistol.Anims.AS_ShellScreen"
+	PatchAnimsetPathPrimaryAutoPistol="PrimarySecondaries_AutoPistol.Anims.AS_ShellScreen"
 }

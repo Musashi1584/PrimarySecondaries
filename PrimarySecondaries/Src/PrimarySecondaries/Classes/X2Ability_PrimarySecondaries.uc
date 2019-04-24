@@ -3,16 +3,55 @@ class X2Ability_PrimarySecondaries extends X2Ability
 
 var config int PISTOL_MOVEMENT_BONUS;
 var config int PISTOL_DETECTIONRADIUS_MODIFER;
+var config float EMPTY_SECONDARY_MOBILITY_BONUS;
 
 static function array<X2DataTemplate> CreateTemplates()
 {
 	local array<X2DataTemplate> Templates;
 
+	Templates.AddItem(EmptySecondaryMobilityBonus());
+	Templates.AddItem(BladestormAttackPrimary());
 	Templates.AddItem(QuickDrawPrimary());
 	Templates.AddItem(PrimaryPistolsBonus('PrimaryPistolsBonus', default.PISTOL_MOVEMENT_BONUS, default.PISTOL_DETECTIONRADIUS_MODIFER));
-	//Templates.AddItem(PrimaryAnimSet());
 
 	return Templates;
+}
+
+static function X2AbilityTemplate EmptySecondaryMobilityBonus()
+{
+	local X2AbilityTemplate Template;
+	local X2Effect_PersistentStatChange Effect;
+
+	Template = PurePassive('EmptySecondaryMobilityBonus', "Texture2D'UILibrary_PerkIcons.UIPerk_stickandmove'", false, 'eAbilitySource_Perk', false);
+
+	Effect = new class'X2Effect_PersistentStatChange';
+	Effect.AddPersistentStatChange(eStat_Mobility, default.EMPTY_SECONDARY_MOBILITY_BONUS, MODOP_PostMultiplication);
+	Effect.SetDisplayInfo(ePerkBuff_Penalty, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
+	Template.AddTargetEffect(Effect);
+	//Template.SetUIStatMarkup(class'XLocalizedData'.default.MobilityLabel, eStat_Mobility, default.EMPTY_SECONDARY_MOBILITY_BONUS);
+	
+	return Template;
+}
+
+static function X2AbilityTemplate BladestormAttackPrimary()
+{
+	local X2AbilityTemplate			Template;
+
+	Template = class'X2Ability_RangerAbilitySet'.static.BladestormAttack('BladestormAttackPrimary');
+	Template.CustomFireAnim = 'FF_MeleeC';
+	Template.CustomFireKillAnim = 'FF_MeleeC';
+	Template.CustomMovingFireAnim = 'FF_MeleeC';
+	Template.CustomMovingFireKillAnim = 'FF_MeleeC';
+	Template.CustomMovingTurnLeftFireAnim = 'FF_MeleeC';
+	Template.CustomMovingTurnLeftFireKillAnim = 'FF_MeleeC';
+	Template.CustomMovingTurnRightFireAnim = 'FF_MeleeC';
+	Template.CustomMovingTurnRightFireKillAnim= 'FF_MeleeC';
+
+	Template.OverrideAbilities.AddItem('BladestormAttack');
+
+	Template.AbilityShooterConditions.AddItem(new class'X2Condition_PrimaryMelee');
+
+	return Template;
 }
 
 static function X2AbilityTemplate QuickDrawPrimary()
@@ -58,35 +97,6 @@ static function X2AbilityTemplate PrimaryPistolsBonus(name TemplateName, int Bon
 	Template.AbilityTargetConditions.AddItem(new class'PrimarySecondaries.X2Condition_NotDualPistols');
 
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	
-	return Template;
-}
-
-static function X2AbilityTemplate PrimaryAnimSet()
-{
-	local X2AbilityTemplate                 Template;	
-	local X2Effect_AdditionalAnimSets		AnimSets;
-
-	`CREATE_X2ABILITY_TEMPLATE(Template, 'PrimaryAnimSet');
-	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_item_nanofibervest";
-
-	Template.AbilitySourceName = 'eAbilitySource_Item';
-	Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
-	Template.Hostility = eHostility_Neutral;
-	Template.bDisplayInUITacticalText = false;
-	
-	Template.AbilityToHitCalc = default.DeadEye;
-	Template.AbilityTargetStyle = default.SelfTarget;
-	Template.AbilityTriggers.AddItem(default.UnitPostBeginPlayTrigger);
-
-	AnimSets = new class'X2Effect_AdditionalAnimSets';
-	AnimSets.AddAnimSetWithPath("PrimarySecondaries_ANIM.Anims.AS_Primary");
-	AnimSets.BuildPersistentEffect(1, true, false, false);
-	Template.AddTargetEffect(AnimSets);
-	
-	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;
-	Template.bSkipFireAction = true;
 	
 	return Template;
 }
