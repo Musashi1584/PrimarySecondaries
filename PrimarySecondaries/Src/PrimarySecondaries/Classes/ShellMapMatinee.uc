@@ -40,24 +40,30 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 	local array<name> PatchSequenceNames;
 	local AnimSet PatchAnimset;
 	local AnimSequence Sequence;
+	local string FemaleSuffix;
+
+	If (UnitState.kAppearance.iGender == eGender_Female)
+	{
+		FemaleSuffix = "_F";
+	}
 
 	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeEquipped(UnitState, SearchState))
 	{
-		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee));
-		`LOG(UnitState.GetFirstName @ "has primary melee eqipped. Adding" @ default.PatchAnimsetPathPrimaryMelee, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+		PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryMelee $ FemaleSuffix));
+		`LOG(UnitState.GetFirstName @ "has primary melee eqipped. Adding" @ default.PatchAnimsetPathPrimaryMelee $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
 	}
 
 	if(class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryPistolEquipped(UnitState, SearchState))
 	{
 		if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'pistol')
 		{
-			`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
-			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol));
+			`LOG(UnitState.GetFirstName @ "has primary pistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix));
 		}
 		else if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, SearchState).GetMyTemplate()).WeaponCat == 'sidearm')
 		{
-			`LOG(UnitState.GetFirstName @ "has primary autopistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
-			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol));
+			`LOG(UnitState.GetFirstName @ "has primary autopistol eqipped. Adding" @ default.PatchAnimsetPathPrimaryPistol $ FemaleSuffix, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, name("PrimarySecondaries" @ default.Class.name));
+			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol $ FemaleSuffix));
 		}
 	}
 

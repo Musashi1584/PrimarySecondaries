@@ -101,3 +101,9 @@ NO_GrappleStopA
 NO_StrangleStartA		
 NO_StrangleStopA
 Zero
+
+
+
+Female
+Arms 15° right and left
+LForearm 10° to the right

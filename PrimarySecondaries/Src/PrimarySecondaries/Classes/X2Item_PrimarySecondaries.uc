@@ -32,6 +32,8 @@ static function X2DataTemplate EmptySecondary()
 
 	Template.iRange = 1;
 	
+	Template.Abilities.AddItem('EmptySecondaryMobilityBonus');
+
 	Template.StartingItem = true;
 	Template.CanBeBuilt = false;
 	Template.bInfiniteItem = true;

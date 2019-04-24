@@ -51,6 +51,7 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 						AnimParams.AnimName = default.ReactionAnimSequence;
 					}
 
+					//TargetPawn.GetAnimTreeController().SetAllowNewAnimations(true);
 					TargetPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(AnimParams);
 					TargetPawn.PlayHitEffects(
 						BloodAmount,
