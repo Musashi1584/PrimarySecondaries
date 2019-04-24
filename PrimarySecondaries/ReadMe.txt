@@ -11,7 +11,7 @@ This mod generates primary variants of all pistols and melee weapons in the game
 
 They are unlocked together with their secondary counterpart.
 
-It supports all DLC and XPack weapons (Except Alienhunter Axes) and every melee weapon or pistol of any mod,
+It supports all DLC and XPack weapons and every melee weapon or pistol of any mod,
 since the the primary weapons are generated at game initializtion from whatever you have installed.
 
 Additionally this mod incorporates the Pistol Upgrades mod which means it adds
@@ -32,6 +32,7 @@ Krakah for the pistol attachments.
 
 Incompatibilities:
 Reduce Armory Clutter causes this mod not to work properly.
+Some mod added weapons have no fireing sound. Please ask the mod author of these mods to put the sound in the weapon animation.
 
 Mod troubleshooting
 https://www.reddit.com/r/xcom2mods/wiki/mod_troubleshooting
