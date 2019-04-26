@@ -44,7 +44,14 @@ Struct WeaponConfig {
 	}
 };
 
+struct DLCAnimSetAdditions
+{
+	var Name CharacterGroup;
+	var String AnimSet;
+	var String FemaleAnimSet;
+};
 
+var config array<DLCAnimSetAdditions> AnimSetAdditions;
 var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
@@ -135,7 +142,42 @@ static event OnPostTemplatesCreated()
 	{
 		ReplacePistolArchetypes();
 	}
+	OnPostCharacterTemplatesCreated();
 }
+
+static function OnPostCharacterTemplatesCreated()
+{
+	local X2CharacterTemplateManager CharacterTemplateMgr;
+	local X2CharacterTemplate CharacterTemplate;
+	local array<X2DataTemplate> DataTemplates;
+	local int ScanTemplates, ScanAdditions;
+	local array<name> AllTemplateNames;
+	local name TemplateName;
+
+	CharacterTemplateMgr = class'X2CharacterTemplateManager'.static.GetCharacterTemplateManager();
+	
+	CharacterTemplateMgr.GetTemplateNames(AllTemplateNames);
+
+	foreach AllTemplateNames(TemplateName)
+	{
+		CharacterTemplateMgr.FindDataTemplateAllDifficulties(TemplateName, DataTemplates);
+
+		for ( ScanTemplates = 0; ScanTemplates < DataTemplates.Length; ++ScanTemplates )
+		{
+			CharacterTemplate = X2CharacterTemplate(DataTemplates[ScanTemplates]);
+			if (CharacterTemplate != none)
+			{
+				ScanAdditions = default.AnimSetAdditions.Find('CharacterGroup', CharacterTemplate.CharacterGroupName);
+				if (ScanAdditions != INDEX_NONE)
+				{
+					CharacterTemplate.AdditionalAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(default.AnimSetAdditions[ScanAdditions].AnimSet)));
+					CharacterTemplate.AdditionalAnimSetsFemale.AddItem(AnimSet(`CONTENT.RequestGameArchetype(default.AnimSetAdditions[ScanAdditions].FemaleAnimSet)));
+				}
+			}
+		}
+	}
+}
+
 
 static function UpdateStorage()
 {
@@ -975,7 +1017,7 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 
 	if (UnitState.IsSoldier() || UnitState.IsAdvent())
 	{
-		CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_PrimaryMelee.Anims.AS_Target")));
+		CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Target.Anims.AS_Advent")));
 	}
 
 	if (!UnitState.IsSoldier())

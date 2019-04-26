@@ -3,8 +3,8 @@ class AnimNotify_TriggerHitReaction extends AnimNotify_Scripted;
 var() editinline name ReactionAnimSequence <ToolTip="Sequence name of the damage reaction to play">;
 var() editinline bool RandomReactionAnimSequence <ToolTip="Play a random sequence of HL_HurtFront, HL_HurtLeft or HL_HurtRight Overides ReactionAnimSequence">;
 var() editinline int BloodAmount <ToolTip="Virtual damage amount that calculates the amount of blood effect">;
-var() name DamageTypeName  <ToolTip="Virtual damage type used in hit effect. Possible values are DefaultProjectile, Acid, Electrical, Poison, Psi and Fire">;
-var() EAbilityHitResult HitResult <ToolTip="Virtual hit result used in the hit effect container">;
+var() editinline name DamageTypeName  <ToolTip="Virtual damage type used in hit effect. Possible values are DefaultProjectile, Acid, Electrical, Poison, Psi and Fire">;
+var() editinline EAbilityHitResult HitResult <ToolTip="Virtual hit result used in the hit effect container">;
 
 event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 {

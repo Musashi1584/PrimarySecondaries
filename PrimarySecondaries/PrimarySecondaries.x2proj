@@ -63,6 +63,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Content\PrimarySecondaries_Sockets.upk">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Content\PrimarySecondaries_Target.upk">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="CookedPCConsole\Soldier_ANIMTREE.upk">
       <SubType>Content</SubType>
     </Content>
@@ -84,6 +87,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Src\PrimarySecondaries\Classes\AnimNotify_TriggerHitReaction.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\AnimNotify_UnitHitCustomDeath.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\PrimarySecondaries\Classes\DropShipMatinee_Actor.uc">
       <SubType>Content</SubType>
     </Content>
@@ -99,6 +105,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Src\PrimarySecondaries\Classes\X2Ability_PrimarySecondaries.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2Action_CustomDeath.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2Condition_NotDualPistols.uc">
       <SubType>Content</SubType>
     </Content>
@@ -106,6 +115,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2DownloadableContentInfo_PrimarySecondaries.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2EventListener_PrimarySecondariesTactical.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2EventListener_PrimarySecondaries_Strategy.uc">
