@@ -37,7 +37,7 @@ static protected function EventListenerReturn OnAbilityActivated(Object EventDat
 	AbilityState = XComGameState_Ability(EventData);
 	AbilityTemplate = AbilityState.GetMyTemplate();
 
-	if (AbilityContext != none && AbilityTemplate.IsMelee()) 
+	if (AbilityContext != none && AbilityTemplate.IsMelee() && AbilityState.SourceWeapon.ObjectID == SourceUnit.GetPrimaryWeapon().ObjectID) 
 	{
 		if (AbilityContext.InputContext.PrimaryTarget.ObjectID > 0)
 		{

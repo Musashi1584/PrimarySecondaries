@@ -35,10 +35,10 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 						DeathAction.DeathAnimSequence = DeathAnimSequence;
 					}
 
-					`XEVENTMGR.TriggerEvent('Visualizer_EffectApplied', self, FireAction);
-					`XEVENTMGR.TriggerEvent('Visualizer_AbilityHit', self, FireAction);
+					FireAction.NotifyTargetsAbilityApplied();
+
 					
-					`LOG(default.class @ "triggered Visualizer_EffectApplied & Visualizer_AbilityHit" @ self @ FireAction @ DeathAction,, 'PrimarySecondaries');
+					`LOG(default.class @ "NotifyTargetsAbilityApplied" @ self @ FireAction @ DeathAction,, 'PrimarySecondaries');
 					
 				}
 			}
