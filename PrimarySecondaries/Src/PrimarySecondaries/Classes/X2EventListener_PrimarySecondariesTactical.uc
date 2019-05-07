@@ -27,6 +27,7 @@ static protected function EventListenerReturn OnAbilityActivated(Object EventDat
 	local XComGameState_Ability AbilityState;
 	local XComGameState_Unit SourceUnit, TargetUnit;
 	local XComGameState NewGameState;
+	local X2AbilityTrigger Trigger;
 
 	SourceUnit = XComGameState_Unit(EventSource);
 	if (!SourceUnit.IsSoldier()) {
@@ -37,7 +38,19 @@ static protected function EventListenerReturn OnAbilityActivated(Object EventDat
 	AbilityState = XComGameState_Ability(EventData);
 	AbilityTemplate = AbilityState.GetMyTemplate();
 
-	if (AbilityContext != none && AbilityTemplate.IsMelee() && AbilityState.SourceWeapon.ObjectID == SourceUnit.GetPrimaryWeapon().ObjectID) 
+	foreach AbilityTemplate.AbilityTriggers(Trigger)
+	{
+		if (X2AbilityTrigger_EventListener(Trigger) != none &&
+			X2AbilityTrigger_EventListener(Trigger).ListenerData.EventID == 'AbilityActivated')
+		{
+			return ELR_NoInterrupt;
+		}
+	}
+
+	if (AbilityContext != none &&
+		AbilityTemplate.IsMelee() &&
+		AbilityState.SourceWeapon.ObjectID == SourceUnit.GetPrimaryWeapon().ObjectID
+		) 
 	{
 		if (AbilityContext.InputContext.PrimaryTarget.ObjectID > 0)
 		{
