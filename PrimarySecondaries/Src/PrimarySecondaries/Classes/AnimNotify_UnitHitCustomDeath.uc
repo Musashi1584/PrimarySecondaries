@@ -7,7 +7,7 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 	local XComUnitPawn Pawn, TargetPawn;
 	local XGUnitNativeBase OwnerUnit;
 	local X2Action_Fire FireAction;
-	local X2Action_CustomDeath DeathAction;
+	local X2Action_Death DeathAction;
 	local XComGameStateVisualizationMgr VisualizationManager;
 	local CustomAnimParams AnimParams;
 	local XGUnit TargetUnit;
@@ -28,11 +28,11 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 				`LOG(default.class @ "Target" @ TargetUnit @ TargetPawn @ FireAction,, 'PrimarySecondaries');
 				if (TargetPawn != none)
 				{
-					DeathAction = X2Action_CustomDeath(VisualizationManager.GetNodeOfType(VisualizationManager.VisualizationTree, class'X2Action_CustomDeath', TargetUnit));
+					DeathAction = X2Action_Death(VisualizationManager.GetNodeOfType(VisualizationManager.VisualizationTree, class'X2Action_CustomDeath', TargetUnit));
 
 					if (DeathAction != none)
 					{
-						DeathAction.DeathAnimSequence = DeathAnimSequence;
+						DeathAction.CustomDeathAnimationName = DeathAnimSequence;
 					}
 
 					FireAction.NotifyTargetsAbilityApplied();

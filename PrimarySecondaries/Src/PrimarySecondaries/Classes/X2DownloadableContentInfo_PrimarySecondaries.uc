@@ -51,6 +51,8 @@ struct DLCAnimSetAdditions
 	var String FemaleAnimSet;
 };
 
+var config array<string> RunBefore;
+var config array<string> RunAfter;
 var config array<DLCAnimSetAdditions> AnimSetAdditions;
 var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
@@ -69,27 +71,16 @@ var config bool bUseVisualPistolUpgrades;
 var config bool bLog;
 var config bool bLogAnimations;
 
-
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
 
-static function bool IsLW2Installed()
+function array<string> GetRunBeforeDLCIdentifiers()
 {
-	return IsModInstalled('X2DownloadableContentInfo_LW_Overhaul');
+	return default.RunBefore;
 }
 
-static function bool IsModInstalled(name X2DCLName)
+function array<string> GetRunAfterDLCIdentifiers()
 {
-	local X2DownloadableContentInfo Mod;
-	foreach `ONLINEEVENTMGR.m_cachedDLCInfos (Mod)
-	{
-		if (Mod.Class.Name == X2DCLName)
-		{
-			`Log("Mod installed:" @ Mod.Class, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog);
-			return true;
-		}
-	}
-
-	return false;
+	return default.RunAfter;
 }
 
 static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
@@ -134,6 +125,8 @@ exec function UpdatePrimarySecondaries() {
 
 static event OnPostTemplatesCreated()
 {
+	`LOG(default.class @ GetFuncName(),, 'DLCSort');
+	ScriptTrace();
 	PatchAbilityTemplates();
 	AddAttachments();
 	AddPrimarySecondaries();
@@ -315,7 +308,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 	
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
-		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplatePrimary)) || QuantityToAdd > 0 || bOnItemConstructionCompleted)
+		if (!XComHQ.HasItem(X2ItemTemplate(ItemTemplatePrimary)) || QuantityToAdd > 0)
 		{
 			`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplatePrimary.DataName @ "("  $ QuantityToAdd $ ")", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			NewItemState = X2ItemTemplate(ItemTemplatePrimary).CreateInstanceFromTemplate(NewGameState);
@@ -570,7 +563,7 @@ static function PatchAbilityTemplates()
 		Template = TemplateManager.FindAbilityTemplate(TemplateName);
 		if (Template != none)
 		{
-			ActionPointCost = X2AbilityCost_ActionPoints(Template.AbilityCosts[0]);
+			ActionPointCost = GetAbilityCostActionPoints(Template);
 			if (ActionPointCost != none && ActionPointCost.DoNotConsumeAllSoldierAbilities.Find('QuickDrawPrimary') == INDEX_NONE)
 			{
 				ActionPointCost.DoNotConsumeAllSoldierAbilities.AddItem('QuickDrawPrimary');
@@ -593,6 +586,19 @@ static function PatchAbilityTemplates()
 	}
 	
 
+}
+
+static function X2AbilityCost_ActionPoints GetAbilityCostActionPoints(X2AbilityTemplate Template)
+{
+	local X2AbilityCost Cost;
+	foreach Template.AbilityCosts(Cost)
+	{
+		if (X2AbilityCost_ActionPoints(Cost) != none)
+		{
+			return X2AbilityCost_ActionPoints(Cost);
+		}
+	}
+	return none;
 }
 
 static function AddPrimarySecondaries()
@@ -834,7 +840,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
 
-	if (UnitState == none || !UnitState.IsSoldier())
+	if (UnitState == none || !AllowUnitState(UnitState))
 	{
 		return;
 	}
@@ -993,10 +999,7 @@ static function UnitPawnPostInitAnimTree(XComGameState_Unit UnitState, XComUnitP
 {
 	local AnimTree AnimTreeTemplate;
 
-	// @TODO Enable after next HL release
-	return;
-
-	if (!UnitState.IsSoldier())
+	if (!AllowUnitState(UnitState))
 	{
 		return;
 	}
@@ -1015,15 +1018,14 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	local int Index;
 	local WeaponConfig IndividualWeaponConfig;
 
-	if (UnitState.IsSoldier() || UnitState.IsAdvent())
-	{
-		CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Target.Anims.AS_Advent")));
-	}
-
-	if (!UnitState.IsSoldier())
+	//`LOG(default.class @ GetFuncName(),, 'DLCSort');
+	
+	if (!AllowUnitState(UnitState))
 	{
 		return;
 	}
+
+	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Target.Anims.AS_Advent")));
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
@@ -1228,7 +1230,7 @@ static function string DLCAppendSockets(XComUnitPawn Pawn)
 
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(HumanPawn.ObjectID));
 
-	if (UnitState == none || !UnitState.IsSoldier()) { return ""; }
+	if (UnitState == none || !AllowUnitState(UnitState)) { return ""; }
 
 	if (HasPrimaryMeleeEquipped(UnitState))
 	{
@@ -1366,6 +1368,31 @@ static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTempl
 		WeaponTemplate.WeaponCat != 'gauntlet';
 }
 
+static function bool AllowUnitState(XComGameState_Unit UnitState)
+{
+	return UnitState.IsSoldier() ||
+		   (UnitState.IsAdvent() && (HasPrimaryPistolEquipped(UnitState) || HasDualPistolEquipped(UnitState)));
+}
+
+static function bool IsLW2Installed()
+{
+	return IsModInstalled('X2DownloadableContentInfo_LW_Overhaul');
+}
+
+static function bool IsModInstalled(name X2DCLName)
+{
+	local X2DownloadableContentInfo Mod;
+	foreach `ONLINEEVENTMGR.m_cachedDLCInfos (Mod)
+	{
+		if (Mod.Class.Name == X2DCLName)
+		{
+			`Log("Mod installed:" @ Mod.Class, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog);
+			return true;
+		}
+	}
+
+	return false;
+}
 
 exec function PS_DebugAnimSetList()
 {
