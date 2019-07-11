@@ -26,7 +26,7 @@ static function X2AbilityTemplate EmptySecondaryMobilityBonus()
 
 	Effect = new class'X2Effect_PersistentStatChange';
 	Effect.AddPersistentStatChange(eStat_Mobility, default.EMPTY_SECONDARY_MOBILITY_BONUS, MODOP_PostMultiplication);
-	Effect.SetDisplayInfo(ePerkBuff_Penalty, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
+	Effect.SetDisplayInfo(ePerkBuff_Bonus, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
 	Template.AddTargetEffect(Effect);
 	//Template.SetUIStatMarkup(class'XLocalizedData'.default.MobilityLabel, eStat_Mobility, default.EMPTY_SECONDARY_MOBILITY_BONUS);
 	

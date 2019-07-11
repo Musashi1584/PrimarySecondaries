@@ -73,16 +73,6 @@ var config bool bLogAnimations;
 
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
 
-function array<string> GetRunBeforeDLCIdentifiers()
-{
-	return default.RunBefore;
-}
-
-function array<string> GetRunAfterDLCIdentifiers()
-{
-	return default.RunAfter;
-}
-
 static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_Unit UnitState, XComGameState SearchState)
 {
 	class'ShellMapMatinee'.static.PatchAllLoadedMatinees(UnitPawn, UnitState, SearchState);
@@ -100,11 +90,11 @@ static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_
 //	AddPrimaryVariants(XComHQ, StartState);
 //}
 
-static event OnLoadedSavedGame()
-{
-	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-	UpdateStorage();
-}
+//static event OnLoadedSavedGame()
+//{
+//	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+//	UpdateStorage();
+//}
 
 static event OnLoadedSavedGameToStrategy()
 {
@@ -112,11 +102,11 @@ static event OnLoadedSavedGameToStrategy()
 	UpdateStorage();
 }
 
-static event OnExitPostMissionSequence()
-{
-	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-	UpdateStorage();
-}
+//static event OnExitPostMissionSequence()
+//{
+//	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+//	UpdateStorage();
+//}
 
 exec function UpdatePrimarySecondaries() {
 	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
@@ -847,10 +837,10 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
 
-	if (!HasPrimaryMeleeOrPistolEquipped(UnitState))
-	{
-		return;
-	}
+	//if (!HasPrimaryMeleeOrPistolEquipped(UnitState))
+	//{
+	//	return;
+	//}
 
 	if (default.PatchMeleeCategoriesAnimBlackList.Find(WeaponTemplate.WeaponCat) != INDEX_NONE)
 	{
@@ -894,7 +884,6 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	}
 	else
 	{
-
 		if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
 		{
 			Weapon.DefaultSocket = 'R_Hand';
@@ -983,7 +972,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 			foreach AnimSetPaths(AnimSetPath)
 			{
 				Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
-				`LOG("----> Adding" @ AnimSetPath @ "to CustomUnitPawnAnimsets of" @ WeaponTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				`LOG(GetFuncName() @ "----> Adding" @ AnimSetPath @ "to CustomUnitPawnAnimsets of" @ WeaponTemplate.DataName @ "Weapon.DefaultSocket" @ Weapon.DefaultSocket, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		
 
@@ -1392,6 +1381,35 @@ static function bool IsModInstalled(name X2DCLName)
 	}
 
 	return false;
+}
+
+exec function PS_ResetWeaponsToDefaultSockets()
+{
+	local XComTacticalController TacticalController;
+	local XComGameState_Unit UnitState;
+	local XComUnitPawn Pawn;
+	local XGUnit Unit;
+	local XGInventory Inventory;
+
+	TacticalController = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+	if (TacticalController != none)
+	{
+		Unit = TacticalController.GetActiveUnit();
+		//Unit.ResetWeaponsToDefaultSockets();
+
+		Pawn = TacticalController.GetActivePawn();
+		//Pawn.CreateVisualInventoryAttachments();
+		
+		UnitState = XComGameState_Unit(
+			`XCOMHISTORY.GetGameStateForObjectID(
+				TacticalController.GetActiveUnitStateRef().ObjectID
+			)
+		);
+		Inventory = Unit.Spawn(class'XGInventory', XGUnit(UnitState.GetVisualizer()).Owner);
+		Inventory.PostInit();
+		XGUnit(UnitState.GetVisualizer()).SetInventory(Inventory);
+		UnitState.SyncVisualizer();
+	}
 }
 
 exec function PS_DebugAnimSetList()
