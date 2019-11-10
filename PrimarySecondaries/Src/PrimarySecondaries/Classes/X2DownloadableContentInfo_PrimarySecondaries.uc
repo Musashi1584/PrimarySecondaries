@@ -62,6 +62,8 @@ var config array<name> PatchMeleeCategoriesAnimBlackList;
 var config array<name> DontOverrideMeleeCategories;
 var config array<WeaponConfig> IndividualWeaponConfig;
 
+var array<name> SkipWeapons;
+
 var config array<int> MIDSHORT_CONVENTIONAL_RANGE;
 var config int PRIMARY_PISTOLS_CLIP_SIZE;
 var config int PRIMARY_SAWEDOFF_CLIP_SIZE;
@@ -612,6 +614,8 @@ static function AddPrimarySecondaries()
 
 	foreach TemplateNames(TemplateName)
 	{
+		if (default.SkipWeapons.Find(TemplateName) != INDEX_NONE) continue;
+
 		ItemTemplateManager.FindDataTemplateAllDifficulties(TemplateName, DifficultyVariants);
 		// Iterate over all variants
 		
