@@ -51,8 +51,6 @@ struct DLCAnimSetAdditions
 	var String FemaleAnimSet;
 };
 
-var config array<string> RunBefore;
-var config array<string> RunAfter;
 var config array<DLCAnimSetAdditions> AnimSetAdditions;
 var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
@@ -78,35 +76,11 @@ static function MatineeGetPawnFromSaveData(XComUnitPawn UnitPawn, XComGameState_
 	class'ShellMapMatinee'.static.PatchAllLoadedMatinees(UnitPawn, UnitState, SearchState);
 }
 
-//static event InstallNewCampaign(XComGameState StartState)
-//{
-//	local XComGameState_HeadquartersXCom XComHQ;
-//
-//	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-//
-//	XComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
-//	XComHQ = XComGameState_HeadquartersXCom(StartState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
-//
-//	AddPrimaryVariants(XComHQ, StartState);
-//}
-
-//static event OnLoadedSavedGame()
-//{
-//	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-//	UpdateStorage();
-//}
-
 static event OnLoadedSavedGameToStrategy()
 {
 	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	UpdateStorage();
 }
-
-//static event OnExitPostMissionSequence()
-//{
-//	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-//	UpdateStorage();
-//}
 
 exec function UpdatePrimarySecondaries() {
 	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
@@ -280,13 +254,15 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 		AllSoldiers = XComHQ.GetSoldiers();
 		foreach AllSoldiers(Soldier)
 		{
-			if (ItemTemplate.DataName == Soldier.GetSecondaryWeapon().GetMyTemplateName())
+			if (ItemTemplate.DataName == Soldier.GetItemInSlot(eInvSlot_SecondaryWeapon, NewGameState).GetMyTemplateName())
 			{
+				`LOG(GetFuncName() @ Soldier.SummaryString() @ "has secondary " @ ItemTemplate.DataName @ "equipped", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				QuantitySecondary += 1;
 			}
 
-			if (ItemTemplatePrimary.DataName == Soldier.GetPrimaryWeapon().GetMyTemplateName())
+			if (ItemTemplatePrimary.DataName == Soldier.GetItemInSlot(eInvSlot_PrimaryWeapon, NewGameState).GetMyTemplateName())
 			{
+				`LOG(GetFuncName() @ Soldier.SummaryString() @ "has primary " @ ItemTemplate.DataName @ "equipped", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				QuantityPrimary += 1;
 			}
 		}

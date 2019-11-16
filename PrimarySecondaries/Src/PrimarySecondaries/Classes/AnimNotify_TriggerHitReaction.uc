@@ -31,7 +31,7 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 			FireAction = X2Action_Fire(VisualizationManager.GetCurrentActionForVisualizer(OwnerUnit));
 			if (FireAction != none)
 			{
-				TargetUnit = XGUnit(FireAction.PrimaryTarget);
+				TargetUnit = XGUnit(`XCOMHISTORY.GetGameStateForObjectID(FireAction.PrimaryTargetID).GetVisualizer());
 				TargetPawn = TargetUnit.GetPawn();
 				`LOG("AnimNotify_TriggerHitReaction Target" @ TargetUnit @ TargetPawn @ FireAction,, 'PrimarySecondaries');
 				if (TargetPawn != none)
