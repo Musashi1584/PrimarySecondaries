@@ -629,7 +629,7 @@ static function AddPrimarySecondaries()
 				ClonedTemplate.InfiniteAmmo = default.bPrimaryPistolsInfiniteAmmo;
 				ClonedTemplate.RangeAccuracy = default.MIDSHORT_CONVENTIONAL_RANGE;
 				//`LOG(WeaponTemplate.DataName @ WeaponTemplate.GameplayInstanceClass, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-				ClonedTemplate.Tier -= 5;
+				//ClonedTemplate.Tier -= 5;
 			}
 
 			if (IsSecondaryMeleeWeaponTemplate(WeaponTemplate) && InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
@@ -645,7 +645,7 @@ static function AddPrimarySecondaries()
 				WeaponTemplate.Abilities.AddItem('DualSlashSecondary');
 
 				// Make sure the templates get added to the bottom if the list
-				ClonedTemplate.Tier -= 10;
+				//ClonedTemplate.Tier -= 10;
 			}
 
 			if (ClonedTemplate != none)
@@ -701,8 +701,8 @@ static function AddPrimarySecondaries()
 
 static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out array<AbilitySetupData> SetupData, optional XComGameState StartState, optional XComGameState_Player PlayerState, optional bool bMultiplayerDisplay)
 {
-	local XComGameState_Item SecondaryItemState;
-	local array<SoldierClassAbilityType> EarnedSoldierAbilities;
+	//local XComGameState_Item SecondaryItemState;
+	//local array<SoldierClassAbilityType> EarnedSoldierAbilities;
 	local int Index;
 
 	`LOG(GetFuncName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
@@ -747,17 +747,17 @@ static function UpdateWeaponAttachments(out array<WeaponAttachment> Attachments,
 	local int i;
 	local name NewSocket;
 	local vector Scale;
-	local WeaponConfig IndividualWeaponConfig;
+	local WeaponConfig IndividualWeaponConfigLocal;
 
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
 
-	if(HasDualMeleeEquipped(UnitState))
+	if(UnitState != none && HasDualMeleeEquipped(UnitState))
 	{
 		return;
 	}
 
-	FindIndividualWeaponConfig(ItemState.GetMyTemplateName(), IndividualWeaponConfig);
-	if (!IndividualWeaponConfig.bUseSideSheaths)
+	FindIndividualWeaponConfig(ItemState.GetMyTemplateName(), IndividualWeaponConfigLocal);
+	if (!IndividualWeaponConfigLocal.bUseSideSheaths)
 	{
 		NewSocket = 'Sheath';
 	}
@@ -781,7 +781,7 @@ static function UpdateWeaponAttachments(out array<WeaponAttachment> Attachments,
 					Scale.Z = 0.85f;
 					XGUnit(UnitState.GetVisualizer()).GetPawn().Mesh.GetSocketByName(NewSocket).RelativeScale = Scale;
 				}
-				`LOG(GetFuncName() @ UnitState.GetFullName() @ ItemState.GetMyTemplateName() @ NewSocket @ "bUseSideSheaths" @ IndividualWeaponConfig.bUseSideSheaths, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				`LOG(GetFuncName() @ UnitState.GetFullName() @ ItemState.GetMyTemplateName() @ NewSocket @ "bUseSideSheaths" @ IndividualWeaponConfigLocal.bUseSideSheaths, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		}
 	}
@@ -793,9 +793,9 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	local XComGameState_Unit UnitState;
 	local array<string> AnimSetPaths;
 	local string AnimSetPath;
-	local AnimSet Anim;
+	//local AnimSet Anim;
 	local bool bResetAnimsets;
-	local WeaponConfig IndividualWeaponConfig;
+	local WeaponConfig IndividualWeaponConfigLocal;
 
 	bResetAnimsets = true;
 
@@ -806,7 +806,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
 
-	if (UnitState == none || !AllowUnitState(UnitState))
+	if (UnitState == none || (UnitState != none && !AllowUnitState(UnitState)))
 	{
 		return;
 	}
@@ -823,16 +823,16 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		return;
 	}
 
-	FindIndividualWeaponConfig(WeaponTemplate.DataName, IndividualWeaponConfig);
+	FindIndividualWeaponConfig(WeaponTemplate.DataName, IndividualWeaponConfigLocal);
 	
-	if (IndividualWeaponConfig.bKeepPawnWeaponAnimation)
+	if (IndividualWeaponConfigLocal.bKeepPawnWeaponAnimation)
 	{
 		return;
 	}
 
 	`LOG(GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
-	if (IndividualWeaponConfig.bUseEmptyHandSoldierAnimations)
+	if (IndividualWeaponConfigLocal.bUseEmptyHandSoldierAnimations)
 	{
 		if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
 		{
@@ -867,8 +867,8 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 			if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 			{
 				// Patching the sequence name from FF_MeleeA to FF_Melee to support random sets via prefixes A,B,C etc
-				Weapon.WeaponFireAnimSequenceName = IndividualWeaponConfig.CustomFireAnim != 'None' ? IndividualWeaponConfig.CustomFireAnim : 'FF_Melee';
-				Weapon.WeaponFireKillAnimSequenceName = IndividualWeaponConfig.CustomFireAnim != 'None' ? IndividualWeaponConfig.CustomFireAnim : 'FF_MeleeKill';
+				Weapon.WeaponFireAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim != 'None' ? IndividualWeaponConfigLocal.CustomFireAnim : 'FF_Melee';
+				Weapon.WeaponFireKillAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim != 'None' ? IndividualWeaponConfigLocal.CustomFireAnim : 'FF_MeleeKill';
 				
 				AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_Sword");
 			}
@@ -881,10 +881,10 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		{
 			Weapon.DefaultSocket = 'R_Hand';
 
-			if (IndividualWeaponConfig.CustomFireAnim != 'None')
+			if (IndividualWeaponConfigLocal.CustomFireAnim != 'None')
 			{
-				Weapon.WeaponFireAnimSequenceName = IndividualWeaponConfig.CustomFireAnim;
-				Weapon.WeaponFireKillAnimSequenceName = IndividualWeaponConfig.CustomFireAnim;
+				Weapon.WeaponFireAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim;
+				Weapon.WeaponFireKillAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim;
 			}
 
 			if (WeaponTemplate.WeaponCat == 'sidearm')
@@ -931,10 +931,10 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 			bResetAnimsets = false;
 		}
 
-		if (IndividualWeaponConfig.CustomWeaponPawnAnimset != "")
+		if (IndividualWeaponConfigLocal.CustomWeaponPawnAnimset != "")
 		{
 			AnimSetPaths.Length = 0;
-			AnimSetPaths.AddItem(IndividualWeaponConfig.CustomWeaponPawnAnimset);
+			AnimSetPaths.AddItem(IndividualWeaponConfigLocal.CustomWeaponPawnAnimset);
 		}
 
 		if (AnimSetPaths.Length > 0)
@@ -964,7 +964,7 @@ static function UnitPawnPostInitAnimTree(XComGameState_Unit UnitState, XComUnitP
 {
 	local AnimTree AnimTreeTemplate;
 
-	if (!AllowUnitState(UnitState))
+	if (UnitState != none && !AllowUnitState(UnitState))
 	{
 		return;
 	}
@@ -981,11 +981,11 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	local string AnimSetPath, FemaleSuffix;
 	local AnimSet Anim;
 	local int Index;
-	local WeaponConfig IndividualWeaponConfig;
+	local WeaponConfig IndividualWeaponConfigLocal;
 
 	//`LOG(default.class @ GetFuncName(),, 'DLCSort');
 	
-	if (!AllowUnitState(UnitState))
+	if (UnitState != none && !AllowUnitState(UnitState))
 	{
 		return;
 	}
@@ -994,9 +994,9 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
-		FindIndividualWeaponConfig(UnitState.GetPrimaryWeapon().GetMyTemplateName(), IndividualWeaponConfig);
+		FindIndividualWeaponConfig(UnitState.GetPrimaryWeapon().GetMyTemplateName(), IndividualWeaponConfigLocal);
 		
-		if (IndividualWeaponConfig.bUseEmptyHandSoldierAnimations)
+		if (IndividualWeaponConfigLocal.bUseEmptyHandSoldierAnimations)
 		{
 			UnitState.kAppearance.iAttitude = 0;
 			UnitState.UpdatePersonalityTemplate();
@@ -1085,7 +1085,7 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 	local array<name>				BoneNames;
 	local name						Bone, BoneNameToUse;
 	local XComGameState_Unit		UnitState;
-	local WeaponConfig				IndividualWeaponConfig;
+	local WeaponConfig				IndividualWeaponConfigLocal;
 
 	Template = X2WeaponTemplate(ItemState.GetMyTemplate());
 
@@ -1096,8 +1096,8 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 		return;
 	}
 
-	FindIndividualWeaponConfig(Template.DataName, IndividualWeaponConfig);
-	if (IndividualWeaponConfig.bUseEmptyHandSoldierAnimations)
+	FindIndividualWeaponConfig(Template.DataName, IndividualWeaponConfigLocal);
+	if (IndividualWeaponConfigLocal.bUseEmptyHandSoldierAnimations)
 	{
 		return;
 	}
@@ -1195,7 +1195,7 @@ static function string DLCAppendSockets(XComUnitPawn Pawn)
 
 	UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(HumanPawn.ObjectID));
 
-	if (UnitState == none || !AllowUnitState(UnitState)) { return ""; }
+	if (UnitState == none || (UnitState != none && !AllowUnitState(UnitState))) { return ""; }
 
 	if (HasPrimaryMeleeEquipped(UnitState))
 	{
@@ -1269,6 +1269,11 @@ static function bool HasDualPistolEquipped(XComGameState_Unit UnitState, optiona
 
 static function bool CheckDualPistolGetsEquipped(XComGameState_Unit UnitState, XComGameState_Item ItemState, optional XComGameState CheckGameState)
 {
+	if (UnitState == none)
+	{
+		return false;
+	}
+
 	return (IsPrimaryPistolWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
 		IsSecondaryPistolWeaponTemplate(X2WeaponTemplate(ItemState.GetMyTemplate())))
 		||
@@ -1278,6 +1283,11 @@ static function bool CheckDualPistolGetsEquipped(XComGameState_Unit UnitState, X
 
 static function bool HasDualMeleeEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
+	if (UnitState == none)
+	{
+		return false;
+	}
+
 	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
 		IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate()));
 }
@@ -1363,7 +1373,7 @@ exec function PS_ResetWeaponsToDefaultSockets()
 {
 	local XComTacticalController TacticalController;
 	local XComGameState_Unit UnitState;
-	local XComUnitPawn Pawn;
+	//local XComUnitPawn Pawn;
 	local XGUnit Unit;
 	local XGInventory Inventory;
 
@@ -1373,7 +1383,7 @@ exec function PS_ResetWeaponsToDefaultSockets()
 		Unit = TacticalController.GetActiveUnit();
 		//Unit.ResetWeaponsToDefaultSockets();
 
-		Pawn = TacticalController.GetActivePawn();
+		//Pawn = TacticalController.GetActivePawn();
 		//Pawn.CreateVisualInventoryAttachments();
 		
 		UnitState = XComGameState_Unit(

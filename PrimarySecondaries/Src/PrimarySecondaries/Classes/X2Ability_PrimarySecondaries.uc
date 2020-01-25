@@ -51,6 +51,8 @@ static function X2AbilityTemplate BladestormAttackPrimary()
 
 	Template.AbilityShooterConditions.AddItem(new class'X2Condition_PrimaryMelee');
 
+	Template.DefaultSourceItemSlot = eInvSlot_PrimaryWeapon;
+
 	return Template;
 }
 
