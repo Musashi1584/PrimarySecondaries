@@ -1263,7 +1263,7 @@ static function bool HasShieldEquipped(XComGameState_Unit UnitState, optional XC
 {
 	local X2WeaponTemplate SecondaryWeaponTemplate;
 	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate());
-	return SecondaryWeaponTemplate.WeaponCat == 'shield' && default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE;
+	return SecondaryWeaponTemplate.WeaponCat == 'shield' && default.SkipWeapons.Find(SecondaryWeaponTemplate.DataName) == INDEX_NONE;
 }
 
 static function bool HasDualPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
