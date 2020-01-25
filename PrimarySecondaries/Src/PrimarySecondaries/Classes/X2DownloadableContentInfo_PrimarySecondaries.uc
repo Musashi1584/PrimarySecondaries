@@ -60,6 +60,8 @@ var config array<name> PatchMeleeCategoriesAnimBlackList;
 var config array<name> DontOverrideMeleeCategories;
 var config array<WeaponConfig> IndividualWeaponConfig;
 
+var array<name> SkipWeapons;
+
 var config array<int> MIDSHORT_CONVENTIONAL_RANGE;
 var config int PRIMARY_PISTOLS_CLIP_SIZE;
 var config int PRIMARY_SAWEDOFF_CLIP_SIZE;
@@ -203,6 +205,8 @@ static function AddPrimaryVariants(out XComGameState_HeadquartersXCom XComHQ, ou
 	{
 		ItemTemplate = ItemTemplateMgr.FindItemTemplate(TemplateName);
 
+		if (default.SkipWeapons.Find(ItemTemplate.DataName) != INDEX_NONE) continue;
+
 		AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
 	}
 
@@ -233,7 +237,6 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 	local array <XComGameState_Unit> AllSoldiers;
 	local XComGameState_Unit Soldier;
 	local array<name> Upgrades;
-
 
 	History = `XCOMHISTORY;
 
@@ -588,6 +591,8 @@ static function AddPrimarySecondaries()
 
 	foreach TemplateNames(TemplateName)
 	{
+		if (default.SkipWeapons.Find(TemplateName) != INDEX_NONE) continue;
+
 		ItemTemplateManager.FindDataTemplateAllDifficulties(TemplateName, DifficultyVariants);
 		// Iterate over all variants
 		
@@ -1258,7 +1263,7 @@ static function bool HasShieldEquipped(XComGameState_Unit UnitState, optional XC
 {
 	local X2WeaponTemplate SecondaryWeaponTemplate;
 	SecondaryWeaponTemplate = X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState).GetMyTemplate());
-	return SecondaryWeaponTemplate.WeaponCat == 'shield';
+	return SecondaryWeaponTemplate.WeaponCat == 'shield' && default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE;
 }
 
 static function bool HasDualPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
@@ -1295,6 +1300,7 @@ static function bool HasDualMeleeEquipped(XComGameState_Unit UnitState, optional
 static function bool IsPrimaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
 	return WeaponTemplate != none &&
+		default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE &&
 		WeaponTemplate.StowedLocation == eSlot_None &&
 		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
 		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
@@ -1303,6 +1309,7 @@ static function bool IsPrimaryPistolWeaponTemplate(X2WeaponTemplate WeaponTempla
 static function bool IsSecondaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
 	return WeaponTemplate != none &&
+		default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE &&
 		WeaponTemplate.StowedLocation == eSlot_None &&
 		WeaponTemplate.InventorySlot == eInvSlot_SecondaryWeapon &&
 		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE &&
@@ -1312,6 +1319,7 @@ static function bool IsSecondaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemp
 static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
 	return WeaponTemplate != none &&
+		default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE &&
 		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
 		WeaponTemplate.iRange == 0 &&
 		WeaponTemplate.WeaponCat != 'wristblade' &&
@@ -1336,6 +1344,7 @@ static function bool FindIndividualWeaponConfig(name TemplateName, out WeaponCon
 static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
 {
 	return WeaponTemplate != none &&
+		default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE &&
 		WeaponTemplate.InventorySlot == eInvSlot_SecondaryWeapon &&
 		WeaponTemplate.iRange == 0 &&
 		WeaponTemplate.WeaponCat != 'wristblade' &&
