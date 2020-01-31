@@ -520,6 +520,7 @@ static function PatchAbilityTemplates()
 					NewAmmoCosts.iAmmo = AbilityAmmoCost.Ammo;
 					Template.AbilityCosts.AddItem(NewAmmoCosts);
 				}
+
 				`LOG("Patching Template" @ AbilityAmmoCost.Ability @ "adding" @ AbilityAmmoCost.Ammo @ "ammo cost", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
 		}
@@ -835,7 +836,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		return;
 	}
 
-	`LOG(GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	//`LOG(GetFuncName() @ "Spawn" @ WeaponArchetype @ ItemState.GetMyTemplateName() @ Weapon.CustomUnitPawnAnimsets.Length, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
 	if (IndividualWeaponConfigLocal.bUseEmptyHandSoldierAnimations)
 	{
