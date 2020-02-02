@@ -56,7 +56,7 @@ var config array<AmmoCost> AmmoCosts;
 var config array<ArchetypeReplacement> ArchetypeReplacements;
 var config array<PistolWeaponAttachment> PistolAttachements;
 var config array<name> PistolCategories;
-var config array<name> PatchMeleeCategoriesAnimBlackList;
+var config array<name> WeaponCategoryBlacklist;
 var config array<name> DontOverrideMeleeCategories;
 var config array<WeaponConfig> IndividualWeaponConfig;
 
@@ -762,6 +762,11 @@ static function UpdateWeaponAttachments(out array<WeaponAttachment> Attachments,
 		return;
 	}
 
+	if (default.WeaponCategoryBlacklist.Find(X2WeaponTemplate(ItemState.GetMyTemplate()).WeaponCat) != INDEX_NONE)
+	{
+		return;
+	}
+
 	FindIndividualWeaponConfig(ItemState.GetMyTemplateName(), IndividualWeaponConfigLocal);
 	if (!IndividualWeaponConfigLocal.bUseSideSheaths)
 	{
@@ -819,12 +824,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 	WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
 
-	//if (!HasPrimaryMeleeOrPistolEquipped(UnitState))
-	//{
-	//	return;
-	//}
-
-	if (default.PatchMeleeCategoriesAnimBlackList.Find(WeaponTemplate.WeaponCat) != INDEX_NONE)
+	if (default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) != INDEX_NONE)
 	{
 		return;
 	}
@@ -1102,6 +1102,11 @@ static function DLCAppendWeaponSockets(out array<SkeletalMeshSocket> NewSockets,
 		return;
 	}
 
+	if (default.WeaponCategoryBlacklist.Find(Template.WeaponCat) != INDEX_NONE)
+	{
+		return;
+	}
+
 	FindIndividualWeaponConfig(Template.DataName, IndividualWeaponConfigLocal);
 	if (IndividualWeaponConfigLocal.bUseEmptyHandSoldierAnimations)
 	{
@@ -1304,7 +1309,8 @@ static function bool IsPrimaryPistolWeaponTemplate(X2WeaponTemplate WeaponTempla
 		default.SkipWeapons.Find(WeaponTemplate.DataName) == INDEX_NONE &&
 		WeaponTemplate.StowedLocation == eSlot_None &&
 		WeaponTemplate.InventorySlot == eInvSlot_PrimaryWeapon &&
-		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE;
+		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE &&
+		default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) == INDEX_NONE;
 }
 
 static function bool IsSecondaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemplate)
@@ -1314,7 +1320,8 @@ static function bool IsSecondaryPistolWeaponTemplate(X2WeaponTemplate WeaponTemp
 		WeaponTemplate.StowedLocation == eSlot_None &&
 		WeaponTemplate.InventorySlot == eInvSlot_SecondaryWeapon &&
 		default.PistolCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE &&
-		InStr(WeaponTemplate.DataName, "_TMP_") == INDEX_NONE; // Filter RF Templar Weapons
+		InStr(WeaponTemplate.DataName, "_TMP_") == INDEX_NONE && // Filter RF Templar Weapons
+		default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) == INDEX_NONE;
 }
 
 static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplate)
@@ -1325,7 +1332,8 @@ static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplat
 		WeaponTemplate.iRange == 0 &&
 		WeaponTemplate.WeaponCat != 'wristblade' &&
 		WeaponTemplate.WeaponCat != 'shield' &&
-		WeaponTemplate.WeaponCat != 'gauntlet';
+		WeaponTemplate.WeaponCat != 'gauntlet' &&
+		default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) == INDEX_NONE;
 }
 
 static function bool FindIndividualWeaponConfig(name TemplateName, out WeaponConfig FoundWeaponConfig)
@@ -1350,7 +1358,8 @@ static function bool IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTempl
 		WeaponTemplate.iRange == 0 &&
 		WeaponTemplate.WeaponCat != 'wristblade' &&
 		WeaponTemplate.WeaponCat != 'shield' &&
-		WeaponTemplate.WeaponCat != 'gauntlet';
+		WeaponTemplate.WeaponCat != 'gauntlet' &&
+		default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) == INDEX_NONE;
 }
 
 static function bool AllowUnitState(XComGameState_Unit UnitState)
