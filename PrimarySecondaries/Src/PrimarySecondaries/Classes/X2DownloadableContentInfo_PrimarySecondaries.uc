@@ -494,6 +494,8 @@ static function PatchAbilityTemplates()
 	local array<name>									TemplateNames;
 	local name											TemplateName;
 	local X2AbilityCost_ActionPoints					ActionPointCost;
+	local X2Condition_UnitEffects						UnitEffects;
+	local X2Condition									Condition;
 	
 	TemplateManager = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
 
@@ -554,7 +556,29 @@ static function PatchAbilityTemplates()
 			Template.AdditionalAbilities.AddItem('BladestormAttackPrimary');
 		}
 	}
-	
+
+	//	Patch SwordSlice so it's usable while disoriented if attached to a primary weapon
+	TemplateManager.FindAbilityTemplateAllDifficulties('SwordSlice', AbilityTemplates);
+	foreach AbilityTemplates(Template)
+	{
+		if (Template != none)
+		{
+			foreach Template.AbilityShooterConditions(Condition)
+			{
+				UnitEffects = X2Condition_UnitEffects(Condition);
+				if (UnitEffects != none)
+				{
+					//	Assume the Shooter Effect Exclusions will be the first Unit Effects condition we find.
+					//	This will make Sword Slice usable while Disoriented.
+					UnitEffects.RemoveExcludeEffect(class'X2AbilityTemplateManager'.default.DisorientedName);
+
+					//	This will make Sword Slice unusable while Disoriented unless that Sword Slice is attached to the primary weapon.
+					Template.AbilityShooterConditions.AddItem(new class'X2Condition_DisorientedPrimary');
+					break;
+				}
+			}
+		}
+	}
 
 }
 

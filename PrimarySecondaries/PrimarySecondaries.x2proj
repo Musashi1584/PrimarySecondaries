@@ -102,6 +102,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Src\PrimarySecondaries\Classes\X2Ability_PrimarySecondaries.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2Condition_DisorientedPrimary.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2Condition_NotDualPistols.uc">
       <SubType>Content</SubType>
     </Content>
