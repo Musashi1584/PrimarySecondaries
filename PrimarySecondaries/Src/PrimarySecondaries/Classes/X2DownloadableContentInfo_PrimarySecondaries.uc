@@ -176,7 +176,7 @@ static function UpdateStorageForItem(X2DataTemplate ItemTemplate, optional bool 
 	XComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
 	XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
 
-	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState, bOnItemConstructionCompleted);
+	//AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState, bOnItemConstructionCompleted);
 
 	if (NewGameState.GetNumGameStateObjects() > 0)
 	{
@@ -198,17 +198,17 @@ static function AddPrimaryVariants(out XComGameState_HeadquartersXCom XComHQ, ou
 	local name TemplateName;
 	local int i;
 
-	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
-	ItemTemplateMgr.GetTemplateNames(AllTemplateNames);
-
-	foreach AllTemplateNames(TemplateName)
-	{
-		ItemTemplate = ItemTemplateMgr.FindItemTemplate(TemplateName);
-
-		if (default.SkipWeapons.Find(ItemTemplate.DataName) != INDEX_NONE) continue;
-
-		AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
-	}
+	//ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+	//ItemTemplateMgr.GetTemplateNames(AllTemplateNames);
+	
+	//foreach AllTemplateNames(TemplateName)
+	//{
+	//	ItemTemplate = ItemTemplateMgr.FindItemTemplate(TemplateName);
+	//
+	//	if (default.SkipWeapons.Find(ItemTemplate.DataName) != INDEX_NONE) continue;
+	//
+	//	AddPrimaryVariantToHQ(ItemTemplate, XComHQ, NewGameState);
+	//}
 
 	ItemTemplates.AddItem(ItemTemplateMgr.FindItemTemplate('EmptySecondary'));
 	for (i = 0; i < ItemTemplates.Length; ++i)
@@ -273,7 +273,7 @@ static function AddPrimaryVariantToHQ(X2DataTemplate ItemTemplate, XComGameState
 
 	QuantityToAdd = QuantitySecondary - QuantityPrimary;
 
-	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName @ "QuantitySecondary:" @ QuantitySecondary @ "QuantityPrimary:" @ QuantityPrimary @ "QuantityToAdd:" @ QuantityToAdd, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	`LOG(GetFuncName() @ "Checking" @ ItemTemplate.DataName @ "QuantitySecondary:" @ QuantitySecondary @ "QuantityPrimary:" @ QuantityPrimary @ "QuantityToAdd:" @ QuantityToAdd @ "bAlwaysUnique" @ X2WeaponTemplate(ItemTemplate).bAlwaysUnique, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 	
 	if (XComHQ.HasItem(X2ItemTemplate(ItemTemplate)))
 	{
@@ -690,6 +690,34 @@ static function AddPrimarySecondaries()
 				if (WeaponTemplate.UpgradeItem != '' )
 					ClonedTemplate.UpgradeItem = name(WeaponTemplate.UpgradeItem $ "_Primary");
 				
+				if (WeaponTemplate.OnAcquiredFn == none)
+				{
+					WeaponTemplate.OnAcquiredFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.OnSecondaryAcquired;
+				}
+				else
+				{
+					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnAcquiredFn" @ WeaponTemplate.OnAcquiredFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				}
+
+				if (WeaponTemplate.OnEquippedFn == none)
+				{
+					WeaponTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
+					ClonedTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
+				}
+				else
+				{
+					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnEquippedFn" @ WeaponTemplate.OnEquippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				}
+
+				if (WeaponTemplate.OnUnequippedFn == none)
+				{
+					WeaponTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
+					ClonedTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
+				}
+				else
+				{
+					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnUnequippedFn" @ WeaponTemplate.OnUnequippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				}
 
 				ItemTemplateManager.AddItemTemplate(ClonedTemplate, true);
 			}
@@ -703,6 +731,188 @@ static function AddPrimarySecondaries()
 	}
 
 	ItemTemplateManager.LoadAllContent();
+}
+
+static function bool OnSecondaryAcquired(XComGameState NewGameState, XComGameState_Item ItemState)
+{
+	local XComGameStateHistory History;
+	local XComGameState_HeadquartersXCom XComHQ;
+	local X2ItemTemplateManager ItemTemplateMgr;
+	local X2DataTemplate ItemTemplatePrimary;
+	local XComGameState_Item NewItemState;
+
+	History = `XCOMHISTORY;
+
+	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+
+	if (default.SkipWeapons.Find(ItemState.GetMyTemplateName()) != INDEX_NONE)
+	{
+		`LOG(GetFuncName() @ "<-> SkipWeapons config" @ ItemState.GetMyTemplateName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		return true;
+	}
+
+	if (ItemState.GetMyTemplate().StartingItem)
+	{
+		`LOG(GetFuncName() @ "<-> StartingItem already present in HQ" @ name(ItemState.GetMyTemplateName() $ "_Primary"), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		return true;
+	}
+	
+	foreach NewGameState.IterateByClassType(class'XComGameState_HeadquartersXCom', XComHQ)
+	{
+		break;
+	}
+
+	if (XComHQ == none)
+	{
+		XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+		XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
+	}
+
+	ItemTemplatePrimary = ItemTemplateMgr.FindItemTemplate(name(ItemState.GetMyTemplateName() $ "_Primary"));
+
+	if (ItemTemplatePrimary != none)
+	{
+		if (ItemState.GetMyTemplate().bInfiniteItem && XComHQ.HasItem(X2ItemTemplate(ItemTemplatePrimary)))
+		{
+			`LOG(GetFuncName() @ "<-> InfiniteItem already present in HQ" @ ItemTemplatePrimary.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			return true;
+		}
+
+		NewItemState = X2ItemTemplate(ItemTemplatePrimary).CreateInstanceFromTemplate(NewGameState);
+		NewGameState.ModifyStateObject(XComHQ.Class, XComHQ.ObjectID);
+		XComHQ.AddItemToHQInventory(NewItemState);
+		`LOG(GetFuncName() @ "-->Adding to HQ" @ ItemTemplatePrimary.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+	}
+
+	return true;
+}
+
+
+static function DeleteMatchingWeaponFromOtherSlot(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState)
+{
+	local XComGameStateHistory History;
+	local XComGameState_HeadquartersXCom XComHQ;
+	local array<StateObjectReference> InventoryItemRefs;
+	local array<name> ItemUpgradeNames, InventoryItemUpgradeNames;
+	local StateObjectReference MatchingItemRef;
+	local XComGameState_Item InventoryItemState;
+	local int idx, jdx;
+
+	History = `XCOMHISTORY;
+
+	foreach NewGameState.IterateByClassType(class'XComGameState_HeadquartersXCom', XComHQ)
+	{
+		break;
+	}
+
+	if (XComHQ == none)
+	{
+		XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+		XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
+	}
+
+	InventoryItemRefs = XComHQ.Inventory;
+	for (idx = 0; idx < InventoryItemRefs.Length; idx++)
+	{
+		InventoryItemState = XComGameState_Item(History.GetGameStateForObjectID(InventoryItemRefs[idx].ObjectID));
+
+		if (InventoryItemState.WeaponAppearance.iWeaponTint == ItemState.WeaponAppearance.iWeaponTint &&
+			InventoryItemState.WeaponAppearance.iWeaponDeco == ItemState.WeaponAppearance.iWeaponDeco &&
+			InventoryItemState.WeaponAppearance.nmWeaponPattern == ItemState.WeaponAppearance.nmWeaponPattern &&
+			InventoryItemState.Nickname == ItemState.Nickname)
+		{
+			ItemUpgradeNames = ItemState.GetMyWeaponUpgradeTemplateNames();
+			InventoryItemUpgradeNames = InventoryItemState.GetMyWeaponUpgradeTemplateNames();
+
+			if (ItemUpgradeNames.Length == InventoryItemUpgradeNames.Length)
+			{
+				for (jdx = 0; jdx < ItemUpgradeNames.Length; jdx++)
+				{
+					if (ItemUpgradeNames[jdx] != InventoryItemUpgradeNames[jdx])
+					{
+						break;
+					}
+				}
+
+				if (jdx == ItemUpgradeNames.Length)
+				{
+					if (ItemState.GetMyTemplateName() != InventoryItemState.GetMyTemplateName())
+					{
+						MatchingItemRef = InventoryItemRefs[idx];
+					}
+				}
+			}
+		}
+	}
+
+	if (MatchingItemRef.ObjectID > 0)
+	{
+		NewGameState.RemoveStateObject(MatchingItemRef.ObjectID);
+		XComHQ.Inventory.RemoveItem(MatchingItemRef);
+	}
+	else
+	{
+		`Redscreen(default.class @ GetFuncName() @ ItemState.ObjectID @ "has no matching ItemState to remove!");
+	}
+}
+
+static function ReplaceMatchingWeaponFromOtherSlot(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState)
+{
+	local XComGameState_HeadquartersXCom XComHQ;
+	local name TemplateName;
+	local int PrimaryIndex;
+	local X2ItemTemplateManager ItemMgr;
+	local X2ItemTemplate ItemTemplate;
+	local XComGameState_Item NewItemState;
+	local array<X2WeaponUpgradeTemplate> OldStateUpgrades;
+	local X2WeaponUpgradeTemplate UpgradeTemplate;
+
+	ItemMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+
+	TemplateName = ItemState.GetMyTemplateName();
+	PrimaryIndex = InStr(TemplateName, "_Primary");
+
+	if (PrimaryIndex == INDEX_NONE)
+	{
+		TemplateName = name(string(TemplateName) $ "_Primary");
+	}
+	else
+	{
+		TemplateName = name(Left(TemplateName, PrimaryIndex));
+	}
+
+	ItemTemplate = ItemMgr.FindItemTemplate(TemplateName);
+
+	if (ItemTemplate == none)
+	{
+		`Redscreen(default.class @ GetFuncName() @ TemplateName @ "does not exist! Cannot add item mirror to other slot!");
+		return;
+	}
+
+	foreach NewGameState.IterateByClassType(class'XComGameState_HeadquartersXCom', XComHQ)
+	{
+		break;
+	}
+
+	if (XComHQ == none)
+	{
+		XComHQ = XComGameState_HeadquartersXCom(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+		XComHQ = XComGameState_HeadquartersXCom(NewGameState.ModifyStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
+	}
+
+	NewItemState = ItemTemplate.CreateInstanceFromTemplate(NewGameState);
+	NewItemState.WipeUpgradeTemplates();
+	OldStateUpgrades = ItemState.GetMyWeaponUpgradeTemplates();
+	foreach OldStateUpgrades(UpgradeTemplate)
+	{
+		NewItemState.ApplyWeaponUpgradeTemplate(UpgradeTemplate);
+	}
+	NewItemState.WeaponAppearance.iWeaponTint = ItemState.WeaponAppearance.iWeaponTint;
+	NewItemState.WeaponAppearance.iWeaponDeco = ItemState.WeaponAppearance.iWeaponDeco;
+	NewItemState.WeaponAppearance.nmWeaponPattern = ItemState.WeaponAppearance.nmWeaponPattern;
+	NewItemState.Nickname = ItemState.Nickname;
+
+	XComHQ.AddItemToHQInventory(NewItemState);
 }
 
 static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out array<AbilitySetupData> SetupData, optional XComGameState StartState, optional XComGameState_Player PlayerState, optional bool bMultiplayerDisplay)
@@ -804,11 +1014,14 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 	local XComGameState_Unit UnitState;
 	local array<string> AnimSetPaths;
 	local string AnimSetPath;
-	//local AnimSet Anim;
-	local bool bResetAnimsets;
+	local bool bResetAnimsets, bOverride;
 	local WeaponConfig IndividualWeaponConfigLocal;
+	local array<AnimSet> CustomUnitPawnAnimsets;
+	local array<AnimSet> CustomUnitPawnAnimsetsFemale;
+	local AnimSet Anim;
 
 	bResetAnimsets = true;
+	bOverride = true;
 
 	if (ItemState == none)
 	{
@@ -935,6 +1148,7 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		if (default.DontOverrideMeleeCategories.Find(WeaponTemplate.WeaponCat) != INDEX_NONE)
 		{
 			bResetAnimsets = false;
+			bOverride = false;
 		}
 
 		if (IndividualWeaponConfigLocal.CustomWeaponPawnAnimset != "")
@@ -945,7 +1159,13 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 
 		if (AnimSetPaths.Length > 0)
 		{
-			if (bResetAnimsets)
+			if (!bOverride)
+			{
+				CustomUnitPawnAnimsets = Weapon.CustomUnitPawnAnimsets;
+				CustomUnitPawnAnimsetsFemale = Weapon.CustomUnitPawnAnimsetsFemale;
+			}
+
+			if (bResetAnimsets || !bOverride)
 			{
 				Weapon.CustomUnitPawnAnimsets.Length = 0;
 				Weapon.CustomUnitPawnAnimsetsFemale.Length = 0;
@@ -956,7 +1176,20 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 				Weapon.CustomUnitPawnAnimsets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
 				`LOG(GetFuncName() @ "----> Adding" @ AnimSetPath @ "to CustomUnitPawnAnimsets of" @ WeaponTemplate.DataName @ "Weapon.DefaultSocket" @ Weapon.DefaultSocket, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 			}
-		
+
+			// Apply the original animations on top
+			if (!bOverride)
+			{
+				foreach CustomUnitPawnAnimsets(Anim)
+				{
+					Weapon.CustomUnitPawnAnimsets.AddItem(Anim);
+				}
+
+				foreach CustomUnitPawnAnimsetsFemale(Anim)
+				{
+					Weapon.CustomUnitPawnAnimsetsFemale.AddItem(Anim);
+				}
+			}
 
 			//foreach Weapon.CustomUnitPawnAnimsets(Anim)
 			//{

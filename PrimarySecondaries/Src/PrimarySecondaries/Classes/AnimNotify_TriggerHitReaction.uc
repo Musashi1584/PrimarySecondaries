@@ -46,22 +46,28 @@ event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 						AnimParams.AnimName = ReactionAnimSequence;
 					}
 
-					if (!TargetPawn.GetAnimTreeController().CanPlayAnimation(AnimParams.AnimName))
-					{
-						AnimParams.AnimName = default.ReactionAnimSequence;
-					}
+					//if (!TargetPawn.GetAnimTreeController().CanPlayAnimation(AnimParams.AnimName))
+					//{
+					//	AnimParams.AnimName = default.ReactionAnimSequence;
+					//}
 
 					//TargetPawn.GetAnimTreeController().SetAllowNewAnimations(true);
-					TargetPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(AnimParams);
-					TargetPawn.PlayHitEffects(
-						BloodAmount,
-						OwnerUnit,
-						TargetPawn.GetHeadshotLocation(),
-						DamageTypeName,
-						Normal(TargetPawn.GetHeadshotLocation()) * 500.0f,
-						false,
-						HitResult
-					);
+					if (TargetPawn.GetAnimTreeController().CanPlayAnimation(AnimParams.AnimName))
+					{
+						TargetPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(AnimParams);
+					}
+					if (BloodAmount > 0)
+					{
+						TargetPawn.PlayHitEffects(
+							BloodAmount,
+							OwnerUnit,
+							TargetPawn.GetHeadshotLocation(),
+							DamageTypeName,
+							Normal(TargetPawn.GetHeadshotLocation()) * 500.0f,
+							false,
+							HitResult
+						);
+					}
 
 					`LOG("AnimNotify_TriggerHitReaction triggered" @ AnimParams.AnimName @ DamageTypeName @ HitResult @ BloodAmount,, 'PrimarySecondaries');
 					
