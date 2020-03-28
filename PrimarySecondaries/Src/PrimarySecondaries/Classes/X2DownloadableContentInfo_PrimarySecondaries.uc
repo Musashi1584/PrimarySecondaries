@@ -60,7 +60,8 @@ var config array<name> WeaponCategoryBlacklist;
 var config array<name> DontOverrideMeleeCategories;
 var config array<WeaponConfig> IndividualWeaponConfig;
 
-var array<name> SkipWeapons;
+var config array<name> SkipWeapons;
+var config array<name> AxePrimaryWeapons;
 
 var config array<int> MIDSHORT_CONVENTIONAL_RANGE;
 var config int PRIMARY_PISTOLS_CLIP_SIZE;
@@ -893,14 +894,21 @@ static function WeaponInitialized(XGWeapon WeaponArchetype, XComWeapon Weapon, o
 		if (IsPrimaryMeleeWeaponTemplate(WeaponTemplate) && HasPrimaryMeleeEquipped(UnitState))
 		{
 			Weapon.DefaultSocket = 'R_Hand';
-		
+			
 			if (InStr(WeaponTemplate.DataName, "SpecOpsKnife") == INDEX_NONE)
 			{
 				// Patching the sequence name from FF_MeleeA to FF_Melee to support random sets via prefixes A,B,C etc
 				Weapon.WeaponFireAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim != 'None' ? IndividualWeaponConfigLocal.CustomFireAnim : 'FF_Melee';
 				Weapon.WeaponFireKillAnimSequenceName = IndividualWeaponConfigLocal.CustomFireAnim != 'None' ? IndividualWeaponConfigLocal.CustomFireAnim : 'FF_MeleeKill';
-				
-				AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_Sword");
+
+				//	Load common primary melee animations
+				AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_PrimaryMelee");
+
+				//	If the weapon is not a primary axe, then also load all the stabby-stabby animations that don't fit axes.
+				if (!IsPrimaryAxeTemplate(WeaponTemplate))
+				{	
+					AnimSetPaths.AddItem("PrimarySecondaries_PrimaryMelee.Anims.AS_Sword");
+				}
 			}
 			else
 			{
@@ -1012,6 +1020,7 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 	local AnimSet Anim;
 	local int Index;
 	local WeaponConfig IndividualWeaponConfigLocal;
+	local XComContentManager Content;
 
 	//`LOG(default.class @ GetFuncName(),, 'DLCSort');
 	
@@ -1020,7 +1029,8 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 		return;
 	}
 
-	CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Target.Anims.AS_Advent")));
+	Content = `CONTENT;
+	CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype("PrimarySecondaries_Target.Anims.AS_Advent")));
 	
 	if (HasPrimaryMeleeOrPistolEquipped(UnitState))
 	{
@@ -1030,8 +1040,8 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 		{
 			UnitState.kAppearance.iAttitude = 0;
 			UnitState.UpdatePersonalityTemplate();
-			CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Armory_Unarmed")));
-			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
+			CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype("PrimarySecondaries_Armory.Anims.AS_Armory_Unarmed")));
+			AddAnimSet(Pawn, AnimSet(Content.RequestGameArchetype("PrimarySecondaries_ANIM.Anims.AS_Primary")), 4);
 			return;
 		}
 
@@ -1045,27 +1055,27 @@ static function UpdateAnimations(out array<AnimSet> CustomAnimSets, XComGameStat
 			if (X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon).GetMyTemplate()).WeaponCat == 'sidearm')
 			{
 				AnimSetPath = "PrimarySecondaries_AutoPistol.Anims.AS_Soldier";
-				CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_AutoPistol.Anims.AS_Armory" $ FemaleSuffix)));
+				CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype("PrimarySecondaries_AutoPistol.Anims.AS_Armory" $ FemaleSuffix)));
 			}
 			else
 			{
 				AnimSetPath = "PrimarySecondaries_Pistol.Anims.AS_Soldier";
-				CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_Pistol.Anims.AS_Armory" $ FemaleSuffix)));
+				CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype("PrimarySecondaries_Pistol.Anims.AS_Armory" $ FemaleSuffix)));
 			}
 		}
 		else if (HasPrimaryMeleeEquipped(UnitState))
 		{
 			AnimSetPath = "PrimarySecondaries_PrimaryMelee.Anims.AS_Soldier" $ FemaleSuffix;
 
-			CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype("PrimarySecondaries_PrimaryMelee.Anims.AS_Armory" $ FemaleSuffix)));
+			CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype("PrimarySecondaries_PrimaryMelee.Anims.AS_Armory" $ FemaleSuffix)));
 		}
 		
 
 		if (AnimSetPath != "")
 		{
-			//CustomAnimSets.AddItem(AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)));
+			//CustomAnimSets.AddItem(AnimSet(Content.RequestGameArchetype(AnimSetPath)));
 
-			AddAnimSet(Pawn, AnimSet(`CONTENT.RequestGameArchetype(AnimSetPath)), Pawn.DefaultUnitPawnAnimsets.Length);
+			AddAnimSet(Pawn, AnimSet(Content.RequestGameArchetype(AnimSetPath)), Pawn.DefaultUnitPawnAnimsets.Length);
 
 			`LOG(GetFuncName() @ "Adding" @ AnimSetPath @ "to" @ UnitState.GetFullName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLogAnimations, 'PrimarySecondaries');
 		}
@@ -1266,10 +1276,10 @@ static function bool HasMeleeAndPistolEquipped(XComGameState_Unit UnitState, opt
 static function bool HasPrimaryMeleeEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
 	return IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState).GetMyTemplate())) &&
-		!HasDualPistolEquipped(UnitState, CheckGameState) &&
 		!HasDualMeleeEquipped(UnitState, CheckGameState) &&
 		!HasShieldEquipped(UnitState, CheckGameState);
 }
+
 
 static function bool HasPrimaryPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
@@ -1359,6 +1369,12 @@ static function bool IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate WeaponTemplat
 		WeaponTemplate.WeaponCat != 'gauntlet' &&
 		default.WeaponCategoryBlacklist.Find(WeaponTemplate.WeaponCat) == INDEX_NONE;
 }
+
+static function bool IsPrimaryAxeTemplate(X2WeaponTemplate WeaponTemplate)
+{
+	return WeaponTemplate != none && default.AxePrimaryWeapons.Find(WeaponTemplate.DataName) != INDEX_NONE;
+}
+
 
 static function bool FindIndividualWeaponConfig(name TemplateName, out WeaponConfig FoundWeaponConfig)
 {
