@@ -418,38 +418,6 @@ static function CheckUniqueWeaponCategories()
 	}
 }
 
-// Unused
-//
-static function AddEqippDelegates()
-{
-	local X2ItemTemplateManager ItemTemplateManager;
-	local array<X2DataTemplate> DifficultyVariants;
-	local X2DataTemplate ItemTemplate;
-	local array<X2WeaponTemplate> WeaponTemplates;
-	local X2WeaponTemplate IterateTemplate, WeaponTemplate;
-
-	ItemTemplateManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
-	
-	WeaponTemplates = ItemTemplateManager.GetAllWeaponTemplates();
-	foreach WeaponTemplates(IterateTemplate)
-	{
-		ItemTemplateManager.FindDataTemplateAllDifficulties(IterateTemplate.DataName, DifficultyVariants);
-		// Iterate over all variants
-		foreach DifficultyVariants(ItemTemplate)
-		{
-			WeaponTemplate = X2WeaponTemplate(ItemTemplate);
-			if (WeaponTemplate != none)
-			{
-				//OnOldEquippedFn = WeaponTemplate.OnEquippedFn;
-				//OnOldUnequippedFn = WeaponTemplate.OnUnequippedFn;
-
-				//WeaponTemplate.OnEquippedFn = PistolEquipped;
-				//WeaponTemplate.OnUnequippedFn = PistolUnEquipped;
-			}
-		}
-	}
-}
-
 static function ReplacePistolArchetypes()
 {
 	local X2ItemTemplateManager ItemTemplateManager;
