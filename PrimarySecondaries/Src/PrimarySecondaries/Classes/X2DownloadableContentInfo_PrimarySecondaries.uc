@@ -667,25 +667,25 @@ static function AddPrimarySecondaries()
 					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnAcquiredFn" @ WeaponTemplate.OnAcquiredFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 				}
 
-				if (WeaponTemplate.OnEquippedFn == none)
-				{
-					WeaponTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
-					ClonedTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
-				}
-				else
-				{
-					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnEquippedFn" @ WeaponTemplate.OnEquippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-				}
-
-				if (WeaponTemplate.OnUnequippedFn == none)
-				{
-					WeaponTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
-					ClonedTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
-				}
-				else
-				{
-					`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnUnequippedFn" @ WeaponTemplate.OnUnequippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
-				}
+				//if (WeaponTemplate.OnEquippedFn == none)
+				//{
+				//	WeaponTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
+				//	ClonedTemplate.OnEquippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.DeleteMatchingWeaponFromOtherSlot;
+				//}
+				//else
+				//{
+				//	`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnEquippedFn" @ WeaponTemplate.OnEquippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				//}
+				//
+				//if (WeaponTemplate.OnUnequippedFn == none)
+				//{
+				//	WeaponTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
+				//	ClonedTemplate.OnUnequippedFn = class'X2DownloadableContentInfo_PrimarySecondaries'.static.ReplaceMatchingWeaponFromOtherSlot;
+				//}
+				//else
+				//{
+				//	`LOG(GetFuncName() @ WeaponTemplate.DataName @ "already has a OnUnequippedFn" @ WeaponTemplate.OnUnequippedFn, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				//}
 
 				ItemTemplateManager.AddItemTemplate(ClonedTemplate, true);
 			}
@@ -708,10 +708,19 @@ static function bool OnSecondaryAcquired(XComGameState NewGameState, XComGameSta
 	local X2ItemTemplateManager ItemTemplateMgr;
 	local X2DataTemplate ItemTemplatePrimary;
 	local XComGameState_Item NewItemState;
+	local XComGameState_Unit OwningUnitState;
 
 	History = `XCOMHISTORY;
 
 	ItemTemplateMgr = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+
+	OwningUnitState = XComGameState_Unit(NewGameState.GetGameStateForObjectID(ItemState.OwnerStateObject.ObjectID));
+
+	if (OwningUnitState != none && !OwningUnitState.IsSoldier())
+	{
+		`LOG(GetFuncName() @ "item owner is not a soldier" @ OwningUnitState.SummaryString(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+		return true;
+	}
 
 	if (default.SkipWeapons.Find(ItemState.GetMyTemplateName()) != INDEX_NONE)
 	{
