@@ -933,9 +933,9 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
 	// Associate all melee abilities with the primary weapon if primary melee weapons are equipped
 	if (UnitState.IsSoldier() && !HasDualMeleeEquipped(UnitState) && HasPrimaryMeleeEquipped(UnitState))
 	{
-		for(Index = 0; Index <= SetupData.Length; Index++)
+		for(Index = 0; Index < SetupData.Length; Index++)
 		{
-			if (SetupData[Index].Template.IsMelee() && SetupData[Index].TemplateName != 'DualSlashSecondary')
+			if (SetupData[Index].Template != none && SetupData[Index].Template.IsMelee() && SetupData[Index].TemplateName != 'DualSlashSecondary')
 			{
 				SetupData[Index].SourceWeaponRef = UnitState.GetPrimaryWeapon().GetReference();
 				`LOG(GetFuncName() @ UnitState.GetFullName() @ "setting" @ SetupData[Index].TemplateName @ "to" @ UnitState.GetPrimaryWeapon().GetMyTemplateName(), class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');

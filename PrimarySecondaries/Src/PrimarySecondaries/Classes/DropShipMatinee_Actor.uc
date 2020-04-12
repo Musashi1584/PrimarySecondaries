@@ -71,7 +71,7 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp)
 	{
 		UnitMapIndex = UnitMapping.Find('GroupName', Group.GroupName);
 		//`LOG(Group.GroupName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, Class.name);
-		if (UnitMapIndex != INDEX_NONE)
+		if (UnitMapIndex != INDEX_NONE && UnitMapping[UnitMapIndex].Unit != none)
 		{
 			if(!class'X2DownloadableContentInfo_PrimarySecondaries'.static.HasPrimaryMeleeOrPistolEquipped(UnitMapping[UnitMapIndex].Unit))
 			{
@@ -114,7 +114,7 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp)
 				AnimControl = InterpTrackAnimControl(Track);
 				if (AnimControl != none)
 				{
-					for (KeyIndex = 0; KeyIndex <= AnimControl.AnimSeqs.Length; KeyIndex++)
+					for (KeyIndex = 0; KeyIndex < AnimControl.AnimSeqs.Length; KeyIndex++)
 					{
 						if (PatchSequenceNames.Find(AnimControl.AnimSeqs[KeyIndex].AnimSeqName) != INDEX_NONE)
 						{
