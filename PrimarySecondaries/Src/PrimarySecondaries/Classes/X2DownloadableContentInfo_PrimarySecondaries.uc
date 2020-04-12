@@ -967,7 +967,7 @@ static function UpdateWeaponAttachments(out array<WeaponAttachment> Attachments,
 
 	if (NewSocket != '')
 	{
-		for (i = Attachments.Length; i >= 0; i--)
+		for (i = Attachments.Length - 1; i >= 0; i--)
 		{
 			if (Attachments[i].AttachToPawn && (Attachments[i].AttachSocket == 'Sheath' || Attachments[i].AttachSocket == 'PrimaryMeleeLeftSheath'))
 			{
