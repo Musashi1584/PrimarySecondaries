@@ -11,6 +11,8 @@ static function PatchAllLoadedMatinees(XComUnitPawn UnitPawn, XComGameState_Unit
 	local array<string> PackageNames;
 	local SequenceObject MatineeObject;
 	local Sequence GameSeq;
+
+	if (UnitState == none) return;
  
 	GameSeq = class'WorldInfo'.static.GetWorldInfo().GetGameSequence();
 	GameSeq.FindSeqObjectsByClass(class'SeqAct_Interp', true, FoundMatinees);
@@ -67,6 +69,8 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 		}
 	}
 
+	if (PatchAnimset == none) return;
+
 	foreach PatchAnimset.Sequences(Sequence)
 	{
 		PatchSequenceNames.AddItem(name(Repl(Sequence.SequenceName, default.AnimSequencePrefix, "")));
@@ -98,7 +102,7 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 				AnimControl = InterpTrackAnimControl(Track);
 				if (AnimControl != none)
 				{
-					for (KeyIndex = 0; KeyIndex <= AnimControl.AnimSeqs.Length; KeyIndex++)
+					for (KeyIndex = 0; KeyIndex < AnimControl.AnimSeqs.Length; KeyIndex++)
 					{
 						if (PatchSequenceNames.Find(AnimControl.AnimSeqs[KeyIndex].AnimSeqName) != INDEX_NONE)
 						{
