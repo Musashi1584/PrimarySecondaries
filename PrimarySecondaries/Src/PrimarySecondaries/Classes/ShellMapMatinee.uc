@@ -11,6 +11,8 @@ static function PatchAllLoadedMatinees(XComUnitPawn UnitPawn, XComGameState_Unit
 	local array<string> PackageNames;
 	local SequenceObject MatineeObject;
 	local Sequence GameSeq;
+
+	if (UnitState == none) return;
  
 	GameSeq = class'WorldInfo'.static.GetWorldInfo().GetGameSequence();
 	GameSeq.FindSeqObjectsByClass(class'SeqAct_Interp', true, FoundMatinees);
@@ -66,6 +68,8 @@ static function PatchSingleMatinee(SeqAct_Interp SeqInterp,
 			PatchAnimset = AnimSet(`CONTENT.RequestGameArchetype(default.PatchAnimsetPathPrimaryAutoPistol $ FemaleSuffix));
 		}
 	}
+
+	if (PatchAnimset == none) return;
 
 	foreach PatchAnimset.Sequences(Sequence)
 	{
