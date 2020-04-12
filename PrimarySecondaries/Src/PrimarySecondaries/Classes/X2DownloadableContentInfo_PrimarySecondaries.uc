@@ -462,6 +462,8 @@ static function PatchAbilityTemplates()
 	local array<name>									TemplateNames;
 	local name											TemplateName;
 	local X2AbilityCost_ActionPoints					ActionPointCost;
+	local X2Condition_PrimaryMeleeDisorient				ShooterExclusionsCondition;
+	local int i;
 	
 	TemplateManager = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
 
@@ -522,8 +524,36 @@ static function PatchAbilityTemplates()
 			Template.AdditionalAbilities.AddItem('BladestormAttackPrimary');
 		}
 	}
-	
 
+	TemplateManager.FindAbilityTemplateAllDifficulties('SwordSlice', AbilityTemplates);
+	foreach AbilityTemplates(Template)
+	{
+		for (i = 0; i < Template.AbilityShooterConditions.Length; i++)
+		{
+			if (X2Condition_UnitEffects(Template.AbilityShooterConditions[i]) != none)
+			{
+				//	The vanilla behavior for SwordSlice is to disallow using it if the owner unit is disoriented.
+				//	Replace it with a different condition that will fail if the unit is disoriented ONLY if the ability is NOT attached to primary melee.
+				//	So the SwordSlice will remain usable if it's attached to a primary melee, even if the owner unit is Disoriented.
+				//	In all other cases the replacement condition will work exactly the same as original.
+
+				ShooterExclusionsCondition = new class'X2Condition_PrimaryMeleeDisorient';
+				//ShooterExclusionsCondition.AddExcludeEffect(class'X2AbilityTemplateManager'.default.DisorientedName, 'AA_UnitIsDisoriented');
+				//ShooterExclusionsCondition.AddExcludeEffect(class'X2StatusEffects'.default.BurningName, 'AA_UnitIsBurning');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2Ability_CarryUnit'.default.CarryUnitEffectName, 'AA_CarryingUnit');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2AbilityTemplateManager'.default.BoundName, 'AA_UnitIsBound');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2AbilityTemplateManager'.default.ConfusedName, 'AA_UnitIsConfused');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2Effect_PersistentVoidConduit'.default.EffectName, 'AA_UnitIsBound');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2AbilityTemplateManager'.default.StunnedName, 'AA_UnitIsStunned');
+				ShooterExclusionsCondition.AddExcludeEffect(class'X2AbilityTemplateManager'.default.DazedName, 'AA_UnitIsStunned');
+				ShooterExclusionsCondition.AddExcludeEffect('Freeze', 'AA_UnitIsFrozen');
+
+				Template.AbilityShooterConditions[i] = ShooterExclusionsCondition;
+				`LOG("Patching SwordSlice ability template so that it can be used even while disoriented if attached to primary melee weapon.", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+				break;
+			}
+		}			
+	}
 }
 
 static function X2AbilityCost_ActionPoints GetAbilityCostActionPoints(X2AbilityTemplate Template)

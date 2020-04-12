@@ -108,6 +108,9 @@ tags= war of the chosen, weapon, seconary, primary, gameplay</Description>
     <Content Include="Src\PrimarySecondaries\Classes\X2Condition_PrimaryMelee.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\PrimarySecondaries\Classes\X2Condition_PrimaryMeleeDisorient.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\PrimarySecondaries\Classes\X2DownloadableContentInfo_PrimarySecondaries.uc">
       <SubType>Content</SubType>
     </Content>
