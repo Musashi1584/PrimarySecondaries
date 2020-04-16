@@ -569,6 +569,67 @@ static function X2AbilityCost_ActionPoints GetAbilityCostActionPoints(X2AbilityT
 	return none;
 }
 
+static function array<name> GetEnemyWeaponTemplates()
+{
+	local X2CharacterTemplateManager CharacterTemplateMgr;
+	local X2CharacterTemplate Template;
+	local array<X2DataTemplate> DataTemplates;
+	local int Index;
+	local array<name> TemplateNames;
+	local name TemplateName;
+	local X2ItemTemplateManager ItemTemplateManager;
+	local InventoryLoadout Loadout;
+	local InventoryLoadoutItem LoadoutItem;
+	local X2WeaponTemplate WeaponTemplate;
+	local array<name> EnemyWeaponTemplates;
+
+	ItemTemplateManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+
+	CharacterTemplateMgr = class'X2CharacterTemplateManager'.static.GetCharacterTemplateManager();
+	CharacterTemplateMgr.GetTemplateNames(TemplateNames);
+
+	foreach TemplateNames(TemplateName)
+	{
+		CharacterTemplateMgr.FindDataTemplateAllDifficulties(TemplateName, DataTemplates);
+		for (Index = 0; Index < DataTemplates.Length; ++Index)
+		{
+			Template = X2CharacterTemplate(DataTemplates[Index]);
+			
+			if (Template == none) {continue;}
+			if (Template.bIsSoldier) {continue;}
+			if (Template.bIsCosmetic) {continue;}
+			if (Template.bNeverSelectable) {continue;}
+			if (Template.bIsScientist) {continue;}
+			
+			if (Template.bIsCivilian && !Template.bIsHostileCivilian) {continue;}
+			if (Template.CharacterGroupName == 'CivilianMilitia') {continue;}
+
+
+			foreach ItemTemplateManager.Loadouts(Loadout)
+			{
+				if(Loadout.LoadoutName == Template.DefaultLoadout)
+				{
+					foreach Loadout.Items(LoadoutItem)
+					{
+						WeaponTemplate = X2WeaponTemplate(ItemTemplateManager.FindItemTemplate(LoadoutItem.Item));
+
+						if(WeaponTemplate != none && 
+						   EnemyWeaponTemplates.Find(WeaponTemplate.DataName) == INDEX_NONE &&
+						   (IsSecondaryPistolWeaponTemplate(WeaponTemplate) || IsSecondaryMeleeWeaponTemplate(WeaponTemplate))
+						)
+						{
+							EnemyWeaponTemplates.AddItem(WeaponTemplate.DataName);
+							`LOG(GetFuncName() @ WeaponTemplate.DataName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return EnemyWeaponTemplates;
+}
+
 static function AddPrimarySecondaries()
 {
 	local X2ItemTemplateManager ItemTemplateManager;
@@ -581,6 +642,10 @@ static function AddPrimarySecondaries()
 	local X2WeaponUpgradeTemplate UpgradeTemplate;
 	local WeaponAttachment UpgradeAttachment;
 	local array<WeaponAttachment> UpgradeAttachmentsToAdd;
+	local array<name> EnemyWeaponTemplates;
+	local string Log, AttachmentLog, PreviousLog, PreviousAttachmentLog;
+
+	EnemyWeaponTemplates = GetEnemyWeaponTemplates();
 	
 	ItemTemplateManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
 
@@ -591,6 +656,7 @@ static function AddPrimarySecondaries()
 	foreach TemplateNames(TemplateName)
 	{
 		if (default.SkipWeapons.Find(TemplateName) != INDEX_NONE) continue;
+		if (EnemyWeaponTemplates.Find(TemplateName) != INDEX_NONE) continue;
 
 		ItemTemplateManager.FindDataTemplateAllDifficulties(TemplateName, DifficultyVariants);
 		// Iterate over all variants
@@ -602,8 +668,6 @@ static function AddPrimarySecondaries()
 
 			if (WeaponTemplate == none)
 				continue;
-
-			`Log(WeaponTemplate.DataName @ WeaponTemplate.StowedLocation @ WeaponTemplate.WeaponCat, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
 
 			if (IsSecondaryPistolWeaponTemplate(WeaponTemplate))
 			{
@@ -670,7 +734,12 @@ static function AddPrimarySecondaries()
 
 					foreach UpgradeAttachmentsToAdd(UpgradeAttachment)
 					{
-						`Log("Adding Attachment" @ UpgradeAttachment.ApplyToWeaponTemplate @ UpgradeAttachment.AttachMeshName, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+						AttachmentLog = "Adding Attachment" @ UpgradeAttachment.ApplyToWeaponTemplate @ UpgradeAttachment.AttachMeshName;
+						if (AttachmentLog != PreviousAttachmentLog)
+						{
+							`Log(AttachmentLog, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+						}
+						PreviousAttachmentLog = AttachmentLog;
 						UpgradeTemplate.UpgradeAttachments.AddItem(UpgradeAttachment);
 					}
 				}
@@ -724,7 +793,12 @@ static function AddPrimarySecondaries()
 
 		if (ClonedTemplate != none)
 		{
-			`Log("Generating Template" @ ClonedTemplate.WeaponCat @ TemplateName $ "_Primary with" @ ClonedTemplate.DefaultAttachments.Length @ "default attachments", class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			Log = "Generating Template" @ ClonedTemplate.WeaponCat @ TemplateName $ "_Primary with" @ ClonedTemplate.DefaultAttachments.Length @ "default attachments";
+			if (Log != PreviousLog)
+			{
+				`Log(Log, class'X2DownloadableContentInfo_PrimarySecondaries'.default.bLog, 'PrimarySecondaries');
+			}
+			PreviousLog = Log;
 		}
 	}
 
