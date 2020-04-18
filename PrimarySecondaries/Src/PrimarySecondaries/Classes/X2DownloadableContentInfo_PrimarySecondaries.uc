@@ -600,6 +600,7 @@ static function array<name> GetEnemyWeaponTemplates()
 			if (Template.bIsCosmetic) {continue;}
 			if (Template.bNeverSelectable) {continue;}
 			if (Template.bIsScientist) {continue;}
+			if (Template.bIsResistanceHero) {continue;}
 			
 			if (Template.bIsCivilian && !Template.bIsHostileCivilian) {continue;}
 			if (Template.CharacterGroupName == 'CivilianMilitia') {continue;}
