@@ -4,7 +4,10 @@ var() editinline float Speed;
 
 event Notify(Actor Owner, AnimNodeSequence AnimSeqInstigator)
 {
-	`CHEATMGR.Slomo(Speed);
+	if (class'X2DownloadableContentInfo_PrimarySecondaries'.default.bUseSlomoInAnimations)
+	{
+		`CHEATMGR.Slomo(Speed);
+	}
 }
 
 defaultproperties

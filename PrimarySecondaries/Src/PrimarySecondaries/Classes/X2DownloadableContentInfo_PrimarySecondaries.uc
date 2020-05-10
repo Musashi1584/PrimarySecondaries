@@ -70,6 +70,7 @@ var config bool bPrimaryPistolsInfiniteAmmo;
 var config bool bUseVisualPistolUpgrades;
 var config bool bLog;
 var config bool bLogAnimations;
+var config bool bUseSlomoInAnimations;
 
 delegate OnEquippedDelegate(XComGameState_Item ItemState, XComGameState_Unit UnitState, XComGameState NewGameState);
 
