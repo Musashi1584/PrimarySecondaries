@@ -1559,6 +1559,11 @@ static function bool HasPrimaryMeleeEquipped(XComGameState_Unit UnitState, optio
 {
 	local XComGameState_Item PrimaryWeapon;
 
+	if (UnitState == none)
+	{
+		return false;
+	}
+
 	PrimaryWeapon = UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState);
 
 	return PrimaryWeapon != none && IsPrimaryMeleeWeaponTemplate(X2WeaponTemplate(PrimaryWeapon.GetMyTemplate())) &&
@@ -1569,6 +1574,11 @@ static function bool HasPrimaryMeleeEquipped(XComGameState_Unit UnitState, optio
 static function bool HasPrimaryPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
 	local XComGameState_Item PrimaryWeapon;
+
+	if (UnitState == none)
+	{
+		return false;
+	}
 
 	PrimaryWeapon = UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState);
 
@@ -1581,6 +1591,11 @@ static function bool HasSecondaryMeleeEquipped(XComGameState_Unit UnitState, opt
 {
 	local XComGameState_Item SecondaryWeapon;
 
+	if (UnitState == none)
+	{
+		return false;
+	}
+
 	SecondaryWeapon = UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState);
 
 	return SecondaryWeapon != none && IsSecondaryMeleeWeaponTemplate(X2WeaponTemplate(SecondaryWeapon.GetMyTemplate()));
@@ -1589,6 +1604,11 @@ static function bool HasSecondaryMeleeEquipped(XComGameState_Unit UnitState, opt
 static function bool HasSecondaryPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
 	local XComGameState_Item SecondaryWeapon;
+
+	if (UnitState == none)
+	{
+		return false;
+	}
 
 	SecondaryWeapon = UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState);
 
@@ -1599,6 +1619,11 @@ static function bool HasShieldEquipped(XComGameState_Unit UnitState, optional XC
 {
 	local XComGameState_Item SecondaryWeapon;
 	local X2WeaponTemplate SecondaryWeaponTemplate;
+
+	if (UnitState == none)
+	{
+		return false;
+	}
 
 	SecondaryWeapon = UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState);
 	if (SecondaryWeapon != none)
@@ -1612,6 +1637,11 @@ static function bool HasShieldEquipped(XComGameState_Unit UnitState, optional XC
 static function bool HasDualPistolEquipped(XComGameState_Unit UnitState, optional XComGameState CheckGameState)
 {
 	local XComGameState_Item PrimaryWeapon, SecondaryWeapon;
+
+	if (UnitState == none)
+	{
+		return false;
+	}
 
 	PrimaryWeapon = UnitState.GetItemInSlot(eInvSlot_PrimaryWeapon, CheckGameState);
 	SecondaryWeapon = UnitState.GetItemInSlot(eInvSlot_SecondaryWeapon, CheckGameState);
